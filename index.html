@@ -127,6 +127,32 @@ details.fold[open]>summary{margin-bottom:12px}
 .mini-pin{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--accent)}
 .mini-pin.ring{background:transparent;box-shadow:0 0 0 2px var(--signal)}
 
+
+/* Intro */
+.intro{position:fixed;inset:0;z-index:50;background:rgb(8 20 30 / .55);display:grid;place-items:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.intro-box{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--surface);border-radius:18px;box-shadow:0 20px 50px rgb(0 0 0 / .3);display:flex;flex-direction:column}
+.intro-art{height:150px;flex:none;background:var(--accent-soft);display:grid;place-items:center;position:relative;overflow:hidden;border-radius:18px 18px 0 0}
+.intro-art svg{width:100%;height:100%;position:absolute;inset:0}
+.intro-body{padding:18px 20px 8px;display:grid;gap:10px}
+.intro-body .eyebrow{font-size:12px}
+.intro-body h2{font-size:28px;line-height:1.05}
+.intro-body p{margin:0;font-size:15px}
+.intro-body ul{margin:0;padding-left:0;list-style:none;display:grid;gap:7px;font-size:15px}
+.intro-body li{display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:center}
+.intro-body li .k{font-family:var(--display);font-weight:700;font-size:15px;text-align:center;border-radius:8px;padding:3px 0;background:var(--sunk)}
+.intro-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.intro-people .person{padding:10px 12px}
+.intro-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px 18px}
+.intro-dots{display:flex;gap:6px}
+.intro-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.intro-dots i.on{background:var(--accent);width:20px;border-radius:4px}
+.intro-next{background:var(--accent);color:var(--surface);border:0;border-radius:10px;padding:10px 18px;font-weight:600;font-size:15px}
+.intro-next:disabled{opacity:.45;cursor:default}
+.intro-skip{border:0;background:none;color:var(--muted);font-size:14px;padding:6px 0}
+.mini-card{position:absolute;width:70px;height:90px;border-radius:12px;background:var(--surface);box-shadow:0 6px 16px rgb(10 30 45 / .18);left:50%;top:60%;transform:translate(-50%,-50%) rotate(-6deg)}
+@media (prefers-reduced-motion:no-preference){.mini-card{animation:wiggle 2.4s ease-in-out infinite}}
+@keyframes wiggle{0%,100%{transform:translate(-50%,-50%) rotate(-6deg)}50%{transform:translate(-30%,-50%) rotate(8deg)}}
+
 /* Swipen */
 .swipe{display:grid;gap:14px;justify-items:center}
 .swipe-top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
@@ -378,7 +404,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
           </dl>
         </div>
       </div>
-      <button class="btn" type="button" id="guideOk" style="justify-self:start">Verstanden, einklappen</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" id="guideOk">Verstanden, einklappen</button><button class="btn" type="button" id="introAgain">Intro nochmal ansehen</button></div>
     </div>
   </details>
 
@@ -513,6 +539,17 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     <p><b>Höhe:</b> Berg = höchster Liftpunkt, Ort = Höhe des Hauptorts, Tal = tiefster Punkt. <b>Fahrzeiten:</b> Richtwerte ohne Stau. <b>Schnee im März, Freeride, Après-Ski, Unterkunft:</b> Einschätzungen 1–5.</p>
   </div>
 </div>
+<div class="intro" id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro-box">
+    <div class="intro-art" id="introArt"></div>
+    <div class="intro-body" id="introBody"></div>
+    <div class="intro-foot">
+      <button class="intro-skip" type="button" id="introSkip">Überspringen</button>
+      <div class="intro-dots" id="introDots"></div>
+      <button class="intro-next" type="button" id="introNext">Weiter</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -640,7 +677,7 @@ let db = null, readOnly = false;
 let open = null, striking = null;
 let editingSettings = 0;
 const L = (() => { try { return JSON.parse(localStorage.getItem("ski-ui")||"{}"); } catch { return {}; } })();
-const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,swOut:true,mxAll:false,guideSeen:false}, L);
+const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,swOut:true,mxAll:false,guideSeen:false,introSeen:false}, L);
 if (!PEOPLE.some(p => p.n === ui.me)) ui.me = null;
 const hashTab = (location.hash||"").slice(1); if (TABS.includes(hashTab)) ui.tab = hashTab;
 if (!TABS.includes(ui.tab)) ui.tab = "swipe";
@@ -1100,11 +1137,69 @@ document.addEventListener("change", e => {
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id?.startsWith("reason-")) document.querySelector(`[data-confirm="${e.target.id.slice(7)}"]`)?.click(); });
 // Auf großen Bildschirmen Einstellungen offen, auf dem Handy eingeklappt
 $("#gDots").innerHTML = dots(3); $("#gEur").innerHTML = euros(1);
-if (!ui.guideSeen) $("#guide").open = true;
 $("#guide").addEventListener("toggle", () => { if (!$("#guide").open && !ui.guideSeen){ ui.guideSeen = true; saveUi(); } });
 if (matchMedia("(min-width: 821px)").matches){ $("#fFold").open = true; }
 $("#wFold").open = ui.wOpen ?? matchMedia("(min-width: 821px)").matches;
 $("#wFold").addEventListener("toggle", () => { ui.wOpen = $("#wFold").open; saveUi(); render(); });
+
+// ---------- Intro beim ersten Öffnen ----------
+const MTN = (fill2) => `<svg viewBox="0 0 420 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 L0 95 L70 70 L140 98 L230 40 L300 75 L360 55 L420 80 L420 150Z" style="fill:var(--accent);opacity:.3"/><path d="M0 150 L0 120 L90 92 L170 112 L260 62 L330 96 L420 84 L420 150Z" style="fill:var(--accent)"/><path d="M232 62 L260 62 L246 52Z" style="fill:var(--surface);opacity:.9"/>${fill2||""}</svg>`;
+const INTRO = [
+  {art: () => MTN(`<text x="210" y="38" text-anchor="middle" style="fill:var(--ink);font:700 22px var(--display)">März 2027</text>`),
+   body: () => `<div class="eyebrow">Willkommen</div><h2 id="introTitle">Wohin geht die Skiwoche?</h2>
+     <p>Hier findet ihr zu viert das passende Skigebiet: 38 Gebiete in den Alpen, alle mit mindestens 100 Pistenkilometern, mit Schnee im März, Skipass-Preisen und Fahrzeiten ab Bad Soden und Feldkirch.</p>
+     <p class="hint">Alles, was ihr hier macht, sehen die anderen sofort.</p>`},
+  {art: () => MTN(),
+   body: () => `<div class="eyebrow">Schritt 1</div><h2 id="introTitle">Wer bist du?</h2>
+     <p>Damit deine Stimmen dir zugeordnet werden.</p>
+     <div class="intro-people">${PEOPLE.map(p => `<button class="person" type="button" data-introme="${p.n}" aria-pressed="${ui.me===p.n}"><b>${p.n}</b><small>aus ${p.from}</small></button>`).join("")}</div>`,
+   ready: () => !!ui.me},
+  {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${[["Schnee",5],["Fahrt",4],["Größe",3],["Freeride",3]].map(([l,v],i)=>`<text x="70" y="${34+i*30}" style="fill:var(--ink);font:600 15px var(--body)">${l}</text><rect x="160" y="${24+i*30}" width="190" height="6" rx="3" style="fill:var(--surface)"/><rect x="160" y="${24+i*30}" width="${v*38}" height="6" rx="3" style="fill:var(--accent)"/><circle cx="${160+v*38}" cy="${27+i*30}" r="8" style="fill:var(--accent)"/>`).join("")}</svg>`,
+   body: () => `<div class="eyebrow">Schritt 2</div><h2 id="introTitle">Was ist euch wichtig?</h2>
+     <p>Oben auf der Seite stellt ihr ein, wie stark Schnee im März, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft zählen. Daraus entstehen Punkte und Rang jedes Gebiets.</p>
+     <p class="hint">Die Regler gelten für alle vier. Am besten einmal gemeinsam einstellen.</p>`},
+  {art: () => `<div class="mini-card"></div><svg viewBox="0 0 420 150" aria-hidden="true" style="pointer-events:none"><text x="408" y="95" text-anchor="end" style="fill:var(--good);font:700 18px var(--display)">♥ GERNE →</text><text x="12" y="95" style="fill:var(--ink);font:700 18px var(--display)">← ✕ NÖ</text><text x="210" y="26" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">↑ ♥♥ TOP</text></svg>`,
+   body: () => `<div class="eyebrow">Schritt 3</div><h2 id="introTitle">Swipen wie bei Tinder</h2>
+     <ul>
+       <li><span class="k" style="color:var(--good)">→ ♥</span><span>nach rechts: gerne</span></li>
+       <li><span class="k" style="color:var(--signal)">↑ ♥♥</span><span>nach oben: Top-Favorit</span></li>
+       <li><span class="k">← ✕</span><span>nach links: lieber nicht</span></li>
+       <li><span class="k">⚑</span><span>„Schon dort gewesen“ streicht ein Gebiet für alle</span></li>
+     </ul>
+     <p class="hint">Statt zu wischen gehen auch die runden Knöpfe unter der Karte.</p>`},
+  {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${["Joni","Achim","Adrian","Olaf"].map((n,i)=>`<text x="${120+i*65}" y="34" text-anchor="middle" style="fill:var(--muted);font:600 13px var(--body)">${n}</text>${[0,1].map(j=>`<text x="${120+i*65}" y="${70+j*34}" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">${j===0?"♥♥":"♥"}</text>`).join("")}`).join("")}<rect x="70" y="50" width="300" height="30" rx="6" style="fill:var(--good);opacity:.18"/><text x="40" y="70" style="fill:var(--good);font:700 13px var(--display)">MATCH</text></svg>`,
+   body: () => `<div class="eyebrow">Schritt 4</div><h2 id="introTitle">Wo seid ihr euch einig?</h2>
+     <p>Im Tab <b>Stimmen</b> seht ihr Matches (alle vier dafür), Fast-Matches und Gebiete mit einem Nein. <b>Rangliste</b> und <b>Karte</b> zeigen alle Gebiete mit Details und Anreise.</p>
+     <p class="hint">Die Anleitung findest du jederzeit oben unter „So funktioniert’s“.</p>`},
+];
+let introStep = 0;
+function renderIntro(){
+  const s = INTRO[introStep];
+  $("#introArt").innerHTML = s.art();
+  $("#introBody").innerHTML = s.body();
+  $("#introDots").innerHTML = INTRO.map((_,i)=>`<i class="${i===introStep?"on":""}"></i>`).join("");
+  const last = introStep === INTRO.length-1;
+  $("#introNext").textContent = last ? "Los geht’s" : "Weiter";
+  $("#introNext").disabled = s.ready ? !s.ready() : false;
+  $("#introSkip").textContent = introStep === 0 ? "Überspringen" : "Zurück";
+}
+function openIntro(){ introStep = 0; $("#intro").hidden = false; renderIntro(); $("#introNext").focus(); }
+function closeIntro(){ $("#intro").hidden = true; ui.introSeen = true; saveUi(); setTab("swipe"); }
+document.addEventListener("click", e => {
+  const b = e.target.closest("#intro button, #introAgain"); if (!b) return;
+  if (b.id === "introAgain"){ openIntro(); return; }
+  if (b.dataset.introme){ ui.me = b.dataset.introme; saveUi(); deckKey = ""; undoStack = []; render(); renderIntro(); return; }
+  if (b.id === "introNext"){ if (introStep < INTRO.length-1){ introStep++; renderIntro(); } else closeIntro(); }
+  if (b.id === "introSkip"){ if (introStep === 0) closeIntro(); else { introStep--; renderIntro(); } }
+});
+document.addEventListener("keydown", e => {
+  if ($("#intro").hidden) return;
+  if (e.key === "Escape") closeIntro();
+  else if (e.key === "ArrowRight" && !$("#introNext").disabled) $("#introNext").click();
+  else if (e.key === "ArrowLeft" && introStep > 0){ introStep--; renderIntro(); }
+  e.stopPropagation();
+}, true);
+if (!ui.introSeen) openIntro();
 
 render();
 
