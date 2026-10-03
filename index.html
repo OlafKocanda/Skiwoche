@@ -263,6 +263,29 @@ table.matrix{border-collapse:collapse;width:100%;min-width:480px;font-size:14px}
 .ttip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:6px 9px;border-radius:6px;max-width:240px;line-height:1.3;transform:translate(-50%,calc(-100% - 10px))}
 .ttip b{font-family:var(--display);font-size:15px}
 
+/* Rangliste kompakt */
+.ctable-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
+table.ctable{width:100%;border-collapse:collapse;font-size:14px;table-layout:auto}
+.ctable th{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--muted);font-weight:600;text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ctable th button{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
+.ctable th button[aria-sort]{color:var(--accent)}
+.ctable td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctable tr:last-child td{border-bottom:0}
+.ctable .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ctable th.num{text-align:right}
+.ctable .cr{width:30px;text-align:right;color:var(--muted);font-family:var(--display);font-weight:700;font-size:16px;padding-left:10px}
+.ctable .cn{width:99%}
+.ctable .cn b{font-weight:600;display:block;line-height:1.2}
+.ctable small{display:block;color:var(--muted);font-size:11px;line-height:1.2}
+.ctable td.num b{font-family:var(--display);font-size:16px}
+.ctable .cv .v{margin-left:4px}
+.crow{cursor:pointer}
+.crow:hover td,.crow.is-open td{background:var(--sunk)}
+.crow.is-out td{opacity:.55}
+.cdetail td{padding:8px;background:var(--sunk)}
+.cdetail .row{border-color:var(--accent)}
+@media (max-width:520px){.ctable .hide-s{display:none}.ctable{font-size:13px}.ctable td,.ctable th{padding:7px 4px}.ctable th{letter-spacing:.02em;font-size:11px}.ctable .cn{width:auto}.ctable .cn b{overflow-wrap:anywhere;hyphens:auto}.ctable .cr{padding-left:6px;width:24px}.cdetail td{padding:6px 2px}}
+
 /* Rangliste */
 .board{display:flex;flex-direction:column;gap:6px}
 .board-head,.row{display:grid;grid-template-columns:36px minmax(0,2fr) 86px 56px 76px 84px 74px 132px 64px 56px 50px 146px;gap:10px;align-items:center}
@@ -485,6 +508,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
       </details>
     </div>
     <div class="panel-head"><h2>Rangliste</h2>
+      <div class="seg" role="group" aria-label="Ansicht"><button type="button" data-compact="1">Kompakt</button><button type="button" data-compact="0">Kacheln</button></div>
       <label class="field" for="sortSel">Sortieren <select id="sortSel" class="chip" style="padding:5px 8px">
         <option value="score">Punkte</option><option value="votes">Stimmen</option><option value="km">Pistenkilometer</option><option value="snow">Schnee im März</option><option value="top">Höhe</option><option value="pass">Skipass</option><option value="drive">Fahrzeit</option><option value="free">Freeride</option><option value="apres">Après-Ski</option><option value="name">Name</option>
       </select></label>
@@ -677,7 +701,7 @@ let db = null, readOnly = false;
 let open = null, striking = null;
 let editingSettings = 0;
 const L = (() => { try { return JSON.parse(localStorage.getItem("ski-ui")||"{}"); } catch { return {}; } })();
-const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,swOut:true,mxAll:false,guideSeen:false,introSeen:false}, L);
+const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,swOut:true,mxAll:false,guideSeen:false,introSeen:false,compact:true}, L);
 if (!PEOPLE.some(p => p.n === ui.me)) ui.me = null;
 const hashTab = (location.hash||"").slice(1); if (TABS.includes(hashTab)) ui.tab = hashTab;
 if (!TABS.includes(ui.tab)) ui.tab = "swipe";
@@ -770,7 +794,7 @@ function renderList(all, list){
   document.querySelectorAll("#bhead [data-sort]").forEach(b => { if (b.dataset.sort === ui.sort) b.setAttribute("aria-sort", ui.dir>0?"ascending":"descending"); else b.removeAttribute("aria-sort"); });
   $("#count").textContent = `${list.length} von ${R.length} Gebieten`;
 
-  $("#rows").innerHTML = list.length ? list.map(r => {
+  const tile = r => {
     const t = r.t, isOpen = open === r.id, pr = r.price;
     const priceSub = pr ? `${pr[1]}${pr[2]?" · dyn.":""}` : "Schätzung";
     const achim = t.mode === "via" ? `fährt ab Feldkirch mit (${fmt(r.fk)})` : `fährt selbst ${fmt(r.fk)}`;
@@ -811,7 +835,29 @@ function renderList(all, list){
           : `<div class="strike"><button class="btn" type="button" data-strike="${r.id}">Streichen …</button></div>`}
       </div>` : ""}
     </article>`;
-  }).join("") : `<div class="empty">Kein Gebiet passt zu den Filtern. Erhöhe die maximale Fahrzeit oder senke die Pistenkilometer.</div>`;
+  };
+  document.querySelectorAll("[data-compact]").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.compact === "1") === ui.compact)));
+  $("#bhead").hidden = ui.compact;
+  const empty = `<div class="empty">Kein Gebiet passt zu den Filtern. Erhöhe die maximale Fahrzeit oder senke die Pistenkilometer.</div>`;
+  if (!list.length) $("#rows").innerHTML = empty;
+  else if (!ui.compact) $("#rows").innerHTML = list.map(tile).join("");
+  else {
+    const th = (k, l, cls="") => `<th class="${cls}"><button type="button" data-sort="${k}" ${ui.sort===k?`aria-sort="${ui.dir>0?"ascending":"descending"}"`:""}>${l}${ui.sort===k?(ui.dir>0?" ↑":" ↓"):""}</button></th>`;
+    const mineMark = r => r.mine ? `<span class="v ${vcls(r.mine)}">${VOTE[r.mine]}</span>` : "";
+    $("#rows").innerHTML = `<div class="ctable-wrap"><table class="ctable">
+      <thead><tr><th class="cr">#</th>${th("name","Gebiet","cn")}${th("score","Pkt.","num")}${th("km","km","num hide-s")}${th("snow","Schnee","hide-s")}${th("pass","Pass €","num")}${th("drive","Fahrt","num")}${th("votes","♥","num")}</tr></thead>
+      <tbody>${list.map(r => `<tr class="crow ${r.excluded?"is-out":""} ${open===r.id?"is-open":""}" data-crow="${r.id}" tabindex="0" aria-expanded="${open===r.id}">
+        <td class="cr num">${r.excluded ? "–" : r.rank}</td>
+        <td class="cn"><b>${esc(r.name)}</b><small>${r.c}${r.glacier?" · Gletscher":""}${r.excluded?" · schon dort":""}</small></td>
+        <td class="num"><b>${Math.round(r.score)}</b></td>
+        <td class="num hide-s">${r.km}</td>
+        <td class="hide-s">${dots(r.snow)}</td>
+        <td class="num">${r.pass}</td>
+        <td class="num">${r.t.mode==="via" ? fmt(r.t.time).replace(" h","") : fmt(r.f).replace(" h","")+`<small>FK ${fmt(r.fk).replace(" h","")}</small>`}</td>
+        <td class="num cv">${r.sum ? (r.sum>0?"+":"")+r.sum : ""}${mineMark(r)}</td>
+      </tr>${open===r.id ? `<tr class="cdetail"><td colspan="8">${tile(r)}</td></tr>` : ""}`).join("")}</tbody></table></div>
+      <p class="hint">Pass € = 6-Tage-Skipass. Fahrt: Zeit ab Bad Soden, bei getrennter Anreise darunter ab Feldkirch (FK). ♥ = Summe aller Stimmen, daneben deine. Zeile antippen für Details und zum Abstimmen.</p>`;
+  }
 
   const outs = all.filter(r => r.excluded);
   $("#outsum").textContent = `Gestrichen (${outs.length})`;
@@ -1095,6 +1141,7 @@ document.addEventListener("click", e => {
   if (b.id === "guideOk"){ $("#guide").open = false; ui.guideSeen = true; saveUi(); }
   else if (b.dataset.tab) setTab(b.dataset.tab);
   else if (b.dataset.tabgo) setTab(b.dataset.tabgo);
+  else if (b.dataset.compact !== undefined){ ui.compact = b.dataset.compact === "1"; saveUi(); render(); }
   else if (b.dataset.view){ ui.view = b.dataset.view; saveUi(); render(); }
   else if (b.dataset.me){ ui.me = b.dataset.me; saveUi(); deckKey = ""; undoStack = []; render(); toast(`Hallo ${ui.me}! Deine Stimmen zählen jetzt für dich.`); }
   else if (b.dataset.sw !== undefined) castSwipe(+b.dataset.sw);
@@ -1124,6 +1171,12 @@ document.addEventListener("click", e => {
     setMark(id,{excluded:true,reason,by:ui.me||""}); toast("Gestrichen. Unten unter „Gestrichen“ wiederherstellbar."); }
   else if (b.dataset.restore){ setMark(b.dataset.restore,{excluded:false}); }
 });
+document.addEventListener("click", e => {
+  if (e.target.closest("button,a,input")) return;
+  const tr = e.target.closest("[data-crow]"); if (!tr) return;
+  open = open === tr.dataset.crow ? null : tr.dataset.crow; striking = null; render();
+});
+document.addEventListener("keydown", e => { const tr = e.target.closest?.("[data-crow]"); if (tr && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); tr.click(); } });
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset.w) setSettings({weights:{[t.dataset.w]:+t.value}});
