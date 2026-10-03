@@ -153,6 +153,24 @@ details.fold[open]>summary{margin-bottom:12px}
 @media (prefers-reduced-motion:no-preference){.mini-card{animation:wiggle 2.4s ease-in-out infinite}}
 @keyframes wiggle{0%,100%{transform:translate(-50%,-50%) rotate(-6deg)}50%{transform:translate(-30%,-50%) rotate(8deg)}}
 
+/* Antworten statt Regler */
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px}
+@media (max-width:760px){.answers{grid-template-columns:1fr}}
+.arow{display:grid;gap:5px;min-width:0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.ahead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ahead b{font-family:var(--display);font-size:17px}
+.aavg{font-size:12px;color:var(--muted);white-space:nowrap}
+.aavg strong{font-family:var(--display);font-size:17px;color:var(--accent)}
+.aq{font-size:13px;color:var(--muted)}
+.achips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.achips button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 2px;font-size:13px;font-weight:600;line-height:1.1}
+.achips button small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.achips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.achips button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.achips button:disabled{opacity:.5;cursor:default}
+.atext{font-size:12px;color:var(--ink)}
+.others-a{font-size:11px;color:var(--muted)}
+
 /* Fragebogen */
 .quizbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
@@ -410,7 +428,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
           <h3>In fünf Schritten</h3>
           <ol>
             <li><b>Namen wählen:</b> Oben auf deinen Namen tippen. Das Gerät merkt sich das.</li>
-            <li><b>Gewichten:</b> Unter „Was ist euch wichtig?“ stellt ihr ein, wie stark Schnee, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft zählen (0 = egal, 5 = sehr wichtig). Daraus entstehen die Punkte, der Rang und die Reihenfolge beim Swipen. Die Regler gelten für alle vier. Tipp: Mit „Mit 7 Fragen einstellen“ beantwortet jeder ein paar Alltagsfragen, und der Schnitt aller wird übernommen.</li>
+            <li><b>Gewichten:</b> Unter „Was ist euch wichtig?“ beantwortet jeder 7 kurze Fragen zu Schnee, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft. Der Schnitt aller Antworten ist automatisch die Gewichtung und bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Einzelne Antworten kannst du dort jederzeit ändern.</li>
             <li><b>Swipen:</b> Jedes Gebiet bewerten: rechts = gerne, oben = Top-Favorit, links = lieber nicht. „Schon dort gewesen“ streicht ein Gebiet für alle.</li>
             <li><b>Stimmen:</b> Dort seht ihr Matches (alle vier dafür), Fast-Matches und Gebiete mit einem Nein.</li>
             <li><b>Rangliste &amp; Karte:</b> Filter gelten nur für dich. „+“ öffnet Details, Anreise pro Person und „Streichen“.</li>
@@ -454,9 +472,10 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
   <details class="panel fold" id="wFold">
     <summary><h2>Was ist euch wichtig?</h2><span class="wsum" id="wSum"></span></summary>
     <div style="display:grid;gap:10px">
-      <div class="quizbar"><button class="btn primary" type="button" id="quizOpen">Mit 7 Fragen einstellen</button><span class="hint" id="quizState"></span></div>
-      <div class="weights" id="weights"></div>
-      <p class="hint">0 = egal, 5 = sehr wichtig. Bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Volle Teilpunkte: ab 300 km Piste, bis 350 € Skipass, bis 5:30 h Fahrt, 5 von 5 bei Schnee, Freeride und Après, € bei der Unterkunft. Null Teilpunkte: 100 km, 470 €, 9 h. Gilt für alle vier, Änderungen sehen alle sofort. Schnee ist für März bewertet. <button class="linkbtn" id="resetW" type="button">Auf Standard setzen</button></p>
+      <p class="hint" style="margin:0">Jeder beantwortet die Fragen für sich. Die Gewichtung ist automatisch der <b>Schnitt aller Antworten</b> (Ø) und bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Ändern geht jederzeit, einfach eine andere Antwort antippen.</p>
+      <div class="quizbar"><span class="hint" id="quizState"></span><button class="linkbtn" type="button" id="quizOpen">Alle Fragen nacheinander</button></div>
+      <div class="answers" id="weights"></div>
+      <p class="hint">Ø-Skala: 0 = egal, 5 = sehr wichtig. Volle Teilpunkte: ab 300 km Piste, bis 350 € Skipass, bis 5:30 h Fahrt, 5 von 5 bei Schnee, Freeride und Après, € bei der Unterkunft. Null Teilpunkte: 100 km, 470 €, 9 h. Schnee ist für März bewertet. Solange noch niemand geantwortet hat, gilt eine Standard-Gewichtung.</p>
     </div>
   </details>
 
@@ -805,7 +824,7 @@ function scored(){
   const ext = f => { const v = R.map(f); return [Math.min(...v), Math.max(...v)]; };
   const n = (v,[a,b],inv) => b===a ? 1 : (inv ? (b-v)/(b-a) : (v-a)/(b-a));
   const rng = {snow:ext(r=>r.snow), size:ext(r=>Math.log(r.km)), price:ext(r=>r.pass), drive:ext(r=>T.get(r.id).time), free:ext(r=>r.free), apres:ext(r=>r.apres), lodge:ext(r=>r.lodge)};
-  const w = settings.weights; const tot = CRIT.reduce((a,c)=>a+(w[c.k]||0),0) || 1;
+  const w = effWeights(); const tot = CRIT.reduce((a,c)=>a+(w[c.k]||0),0) || 1;
   const out = R.map(r => {
     const t = T.get(r.id);
     const s = subScores(r, t);
@@ -836,12 +855,11 @@ function render(){
   for (const t of TABS){ const on = ui.tab === t; $("#t-"+t).setAttribute("aria-selected", String(on)); $("#p-"+t).hidden = !on; }
   $("#priceDate").textContent = PRICE_DATE;
 
-  const wbox = $("#weights");
-  if (!wbox.children.length) wbox.innerHTML = CRIT.map(c => `<div class="w"><label for="w-${c.k}">${c.label}</label><output id="o-${c.k}" for="w-${c.k}"></output><input type="range" id="w-${c.k}" min="0" max="5" step="1" data-w="${c.k}"></div>`).join("");
-  for (const c of CRIT){ const i = $("#w-"+c.k); if (document.activeElement !== i) i.value = settings.weights[c.k]; $("#o-"+c.k).textContent = settings.weights[c.k]; }
+  renderAnswers();
   renderQuizState();
   const SHORT = {snow:"Schnee",size:"Größe",price:"Preis",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"};
-  $("#wSum").innerHTML = $("#wFold").open ? "" : CRIT.slice().sort((a,b)=>settings.weights[b.k]-settings.weights[a.k]).filter(c=>settings.weights[c.k]>0).map(c=>`<span>${SHORT[c.k]} <b class="num">${settings.weights[c.k]}</b></span>`).join("");
+  const ew = effWeights();
+  $("#wSum").innerHTML = $("#wFold").open ? "" : CRIT.slice().sort((a,b)=>ew[b.k]-ew[a.k]).filter(c=>ew[c.k]>0).map(c=>`<span>${SHORT[c.k]} <b class="num">${fmtW(ew[c.k])}</b></span>`).join("");
   const list = filtered(all);
   if (ui.tab === "swipe") renderSwipe(all);
   if (ui.tab === "list") renderList(all, list);
@@ -1244,7 +1262,6 @@ document.addEventListener("click", e => {
   else if (b.dataset.route) setSettings({route:b.dataset.route});
   else if (b.dataset.c){ const c=b.dataset.c; ui.countries = ui.countries.includes(c) ? ui.countries.filter(x=>x!==c) : [...ui.countries,c]; saveUi(); render(); }
   else if (b.id === "onlyFav" || b.id === "showOut" || b.id === "glacier"){ ui[b.id] = !ui[b.id]; saveUi(); render(); }
-  else if (b.id === "resetW") setSettings({weights:{...DEF.weights}});
   else if (b.dataset.sort){ const s=b.dataset.sort; if (ui.sort===s) ui.dir*=-1; else { ui.sort=s; ui.dir = ["score","km","snow","top","free","apres","votes"].includes(s) ? -1 : 1; } saveUi(); render(); }
   else if (b.dataset.open){ open = open === b.dataset.open ? null : b.dataset.open; striking = null; render(); }
   else if (b.dataset.goto) gotoRow(b.dataset.goto);
@@ -1267,8 +1284,7 @@ document.addEventListener("click", e => {
 document.addEventListener("keydown", e => { const tr = e.target.closest?.("[data-crow]"); if (tr && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); tr.click(); } });
 document.addEventListener("input", e => {
   const t = e.target;
-  if (t.dataset.w) setSettings({weights:{[t.dataset.w]:+t.value}});
-  else if (["minKm","maxDrive","minTop"].includes(t.id)){ ui[t.id] = +t.value; saveUi(); render(); }
+  if (["minKm","maxDrive","minTop"].includes(t.id)){ ui[t.id] = +t.value; saveUi(); render(); }
 });
 document.addEventListener("change", e => {
   const t = e.target;
@@ -1294,36 +1310,39 @@ const QUIZ = [
   {k:"lodge", q:"Wie wichtig ist eine günstige Unterkunft?", o:[[0,"Egal, darf auch teuer sein"],[2,"Sollte im Rahmen bleiben"],[4,"Ziemlich wichtig"],[5,"So günstig wie möglich"]]},
 ];
 let quizStep = 0, quizAns = {}, quizFromIntro = false;
-function quizDone(){ $("#quiz").hidden = true; ui.quizAsked = true; saveUi(); if (quizFromIntro){ quizFromIntro = false; const i = INTRO.findIndex(s => s.quiz); introStep = i + 1; $("#intro").hidden = false; renderIntro(); } }
 const answersOf = () => settings.answers || {};
-function groupWeights(){
-  const ans = Object.values(answersOf()).filter(a => a && typeof a === "object");
-  if (!ans.length) return null;
-  const w = {}; for (const c of CRIT){ const vs = ans.map(a => +a[c.k]).filter(v => !isNaN(v)); w[c.k] = vs.length ? Math.round(vs.reduce((x,y)=>x+y,0)/vs.length) : settings.weights[c.k]; }
+function quizDone(){ $("#quiz").hidden = true; ui.quizAsked = true; saveUi(); if (quizFromIntro){ quizFromIntro = false; const i = INTRO.findIndex(s => s.quiz); introStep = i + 1; $("#intro").hidden = false; renderIntro(); } }
+
+// Gewichtung = Schnitt aller Antworten je Kriterium; ohne Antworten gilt der Standard
+function effWeights(){
+  const ans = PEOPLE.map(p => answersOf()[p.n]).filter(a => a && typeof a === "object");
+  const w = {};
+  for (const c of CRIT){ const vs = ans.map(a => a[c.k]).filter(v => typeof v === "number"); w[c.k] = vs.length ? vs.reduce((x,y)=>x+y,0)/vs.length : DEF.weights[c.k]; }
   return w;
 }
+const fmtW = v => (Math.round(v*10)/10).toLocaleString("de-DE");
 function renderQuizState(){
   const a = answersOf(); const done = PEOPLE.filter(p => a[p.n]).map(p => p.n);
   $("#quizState").textContent = done.length ? `Beantwortet: ${done.join(", ")} (${done.length}/4)` : "Noch niemand hat geantwortet.";
-  $("#quizOpen").textContent = ui.me && a[ui.me] ? "Meine Antworten ändern / Ergebnis" : "Mit 7 Fragen einstellen";
+  $("#quizOpen").textContent = ui.me && a[ui.me] ? "Alle Antworten als Tabelle" : "Alle Fragen nacheinander";
 }
 function renderQuiz(){
   const body = $("#quizBody");
   $("#quizDots").innerHTML = QUIZ.map((_,i)=>`<i class="${i===quizStep?"on":""}"></i>`).join("") + `<i class="${quizStep===QUIZ.length?"on":""}"></i>`;
-  $("#quizBack").textContent = quizStep === 0 ? (quizFromIntro ? "Überspringen" : "Abbrechen") : (quizStep === QUIZ.length ? (quizFromIntro ? "Weiter ohne Übernehmen" : "Schließen") : "Zurück");
+  $("#quizBack").textContent = quizStep === 0 ? (quizFromIntro ? "Überspringen" : "Abbrechen") : (quizStep === QUIZ.length ? "" : "Zurück");
   if (quizStep < QUIZ.length){
     const s = QUIZ[quizStep], c = CRIT.find(x => x.k === s.k);
     body.innerHTML = `<div class="eyebrow">Frage ${quizStep+1} von ${QUIZ.length} · ${c.label}</div><h2 id="quizTitle" style="font-size:24px">${s.q}</h2>
       <div class="qopts">${s.o.map(([v,l]) => `<button class="qopt" type="button" data-qv="${v}" aria-pressed="${quizAns[s.k]===v}"><span class="lvl">${v}</span><span>${l}</span></button>`).join("")}</div>`;
     return;
   }
-  const a = answersOf(), g = groupWeights() || quizAns;
+  const a = answersOf(), g = effWeights();
   const cell = (n,k) => a[n] ? a[n][k] : `<span class="na">–</span>`;
   body.innerHTML = `<div class="eyebrow">Ergebnis</div><h2 id="quizTitle" style="font-size:24px">Was euch wichtig ist</h2>
     <div style="overflow-x:auto"><table class="qres"><thead><tr><th></th>${PEOPLE.map(p=>`<th>${p.n}</th>`).join("")}<th title="Schnitt">Ø</th></tr></thead>
-    <tbody>${CRIT.map(c => `<tr><td>${({snow:"Schnee",size:"Größe",price:"Skipass",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"})[c.k]}</td>${PEOPLE.map(p=>`<td>${cell(p.n,c.k)}</td>`).join("")}<td class="avg">${g[c.k]}</td></tr>`).join("")}</tbody></table></div>
-    <p class="hint">Ø = Schnitt aller, die geantwortet haben (${PEOPLE.filter(p=>a[p.n]).length}/4). Übernehmen setzt die Regler für alle auf diese Werte. Ihr könnt sie danach trotzdem noch verschieben.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" id="quizApply">${quizFromIntro ? "Schnitt übernehmen und weiter" : "Schnitt für alle übernehmen"}</button><button class="btn" type="button" id="quizRetake">Meine Antworten ändern</button></div>`;
+    <tbody>${CRIT.map(c => `<tr><td>${({snow:"Schnee",size:"Größe",price:"Skipass",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"})[c.k]}</td>${PEOPLE.map(p=>`<td>${cell(p.n,c.k)}</td>`).join("")}<td class="avg">${fmtW(g[c.k])}</td></tr>`).join("")}</tbody></table></div>
+    <p class="hint">Ø = Schnitt aller, die geantwortet haben (${PEOPLE.filter(p=>a[p.n]).length}/4). Daraus ergibt sich automatisch die Gewichtung für alle. Einzelne Antworten änderst du jederzeit oben unter „Was ist euch wichtig?“.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" id="quizApply">${quizFromIntro ? "Weiter" : "Fertig"}</button><button class="btn" type="button" id="quizRetake">Meine Antworten ändern</button></div>`;
 }
 function openQuiz(fresh){
   if (!ui.me){ toast("Wähle zuerst oben, wer du bist."); $("#mebox").scrollIntoView({block:"center"}); return; }
@@ -1347,9 +1366,35 @@ document.addEventListener("click", e => {
     return;
   }
   if (b.id === "quizBack"){ if (quizStep === 0 || quizStep === QUIZ.length) quizDone(); else { quizStep--; renderQuiz(); } return; }
-  if (b.id === "quizApply"){ const g = groupWeights(); if (g){ setSettings({weights:g}); toast("Regler für alle gesetzt."); } quizDone(); }
+  if (b.id === "quizApply") quizDone();
 });
 document.addEventListener("keydown", e => { if (!$("#quiz").hidden && e.key === "Escape"){ quizDone(); e.stopPropagation(); } }, true);
+
+const LVL = [[0,"egal"],[2,"etwas"],[4,"wichtig"],[5,"sehr"]];
+function renderAnswers(){
+  const a = answersOf(), mine = (ui.me && a[ui.me]) || {}, ew = effWeights();
+  $("#weights").innerHTML = QUIZ.map(s => {
+    const c = CRIT.find(x => x.k === s.k);
+    const sel = mine[s.k];
+    const txt = s.o.find(o => o[0] === sel);
+    const others = PEOPLE.filter(p => p.n !== ui.me && a[p.n] && typeof a[p.n][s.k] === "number").map(p => `${p.n} ${a[p.n][s.k]}`).join(" · ");
+    return `<div class="arow">
+      <div class="ahead"><b>${c.label}</b><span class="aavg">Ø <strong class="num">${fmtW(ew[s.k])}</strong></span></div>
+      <div class="aq">${s.q}</div>
+      <div class="achips" role="group" aria-label="${c.label}">${LVL.map(([v,l]) => `<button type="button" data-ans="${s.k}" data-av="${v}" aria-pressed="${sel===v}" ${ui.me?"":"disabled"} title="${esc((s.o.find(o=>o[0]===v)||[])[1]||"")}">${v}<small>${l}</small></button>`).join("")}</div>
+      ${txt ? `<div class="atext">${ui.me}: „${txt[1]}“</div>` : `<div class="atext" style="color:var(--muted)">${ui.me ? "Noch nicht beantwortet" : "Wähle oben, wer du bist"}</div>`}
+      ${others ? `<div class="others-a">${others}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+async function setAnswer(k, v){
+  if (!ui.me) return;
+  const cur = {...(answersOf()[ui.me] || {})}; cur[k] = v;
+  settings.answers = {...answersOf(), [ui.me]: cur};
+  render();
+  if (db){ try { await db.ref(ROOT + "/settings/answers/" + ui.me + "/" + k).set(v); } catch(e){ toast("Speichern hat nicht geklappt. Bist du online?"); } }
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-ans]"); if (b) setAnswer(b.dataset.ans, +b.dataset.av); });
 
 // ---------- Intro beim ersten Öffnen ----------
 const MTN = (fill2) => `<svg viewBox="0 0 420 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 L0 95 L70 70 L140 98 L230 40 L300 75 L360 55 L420 80 L420 150Z" style="fill:var(--accent);opacity:.3"/><path d="M0 150 L0 120 L90 92 L170 112 L260 62 L330 96 L420 84 L420 150Z" style="fill:var(--accent)"/><path d="M232 62 L260 62 L246 52Z" style="fill:var(--surface);opacity:.9"/>${fill2||""}</svg>`;
@@ -1366,8 +1411,8 @@ const INTRO = [
   {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${[["Schnee",5],["Fahrt",4],["Größe",3],["Freeride",3]].map(([l,v],i)=>`<text x="70" y="${34+i*30}" style="fill:var(--ink);font:600 15px var(--body)">${l}</text><rect x="160" y="${24+i*30}" width="190" height="6" rx="3" style="fill:var(--surface)"/><rect x="160" y="${24+i*30}" width="${v*38}" height="6" rx="3" style="fill:var(--accent)"/><circle cx="${160+v*38}" cy="${27+i*30}" r="8" style="fill:var(--accent)"/>`).join("")}</svg>`,
    body: () => `<div class="eyebrow">Schritt 2</div><h2 id="introTitle">Was ist euch wichtig?</h2>
      <p>Wie stark zählen Schnee im März, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft? Daraus entstehen Punkte und Rang jedes Gebiets.</p>
-     <p>Dafür kommen jetzt <b>7 kurze Fragen</b>. Aus euren Antworten wird der Schnitt gebildet und als Gewichtung für alle übernommen.</p>
-     <p class="hint">Später findest du die Fragen und die Regler oben unter „Was ist euch wichtig?“.</p>`, quiz:true},
+     <p>Dafür kommen jetzt <b>7 kurze Fragen</b>. Der Schnitt aller Antworten ist automatisch die Gewichtung für alle.</p>
+     <p class="hint">Später kannst du jede Antwort einzeln oben unter „Was ist euch wichtig?“ ändern.</p>`, quiz:true},
   {art: () => `<div class="mini-card"></div><svg viewBox="0 0 420 150" aria-hidden="true" style="pointer-events:none"><text x="408" y="95" text-anchor="end" style="fill:var(--good);font:700 18px var(--display)">♥ GERNE →</text><text x="12" y="95" style="fill:var(--ink);font:700 18px var(--display)">← ✕ NÖ</text><text x="210" y="26" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">↑ ♥♥ TOP</text></svg>`,
    body: () => `<div class="eyebrow">Schritt 3</div><h2 id="introTitle">Swipen wie bei Tinder</h2>
      <ul>
