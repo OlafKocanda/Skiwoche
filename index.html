@@ -173,6 +173,10 @@ details.fold[open]>summary{margin-bottom:12px}
 .sb.small{width:44px;height:44px;font-size:16px}
 .sb.no{color:var(--ink)} .sb.yes{color:var(--good)} .sb.top2{color:var(--signal)}
 .sb:disabled{opacity:.4;cursor:default}
+.sb-been{border:1px dashed var(--muted);background:transparent;border-radius:99px;padding:7px 16px;font-weight:600;font-size:14px;color:var(--muted)}
+.sb-been:hover{color:var(--ink);border-color:var(--ink)}
+.sb-been:disabled{opacity:.4;cursor:default}
+.stamp.been{left:50%;top:60px;transform:translateX(-50%) rotate(-6deg);color:var(--muted);font-size:24px;white-space:nowrap}
 .swipe-help{font-size:13px;color:var(--muted);text-align:center;margin:0}
 .done{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;border:1px dashed var(--line);border-radius:16px;background:var(--surface)}
 .done h3{font-size:26px}
@@ -342,7 +346,8 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
             <dt><span class="v v2">♥♥</span></dt><dd>Top-Favorit, zählt +2</dd>
             <dt><span class="v v1">♥</span></dt><dd>Gerne, zählt +1</dd>
             <dt><span class="v vn">✕</span></dt><dd>Lieber nicht, zählt −1</dd>
-            <dt><span class="kbd">⤼</span>&nbsp;<span class="kbd">↶</span></dt><dd>Beim Swipen: überspringen · letzte Stimme rückgängig</dd>
+            <dt><span class="kbd">⤼</span>&nbsp;<span class="kbd">↶</span></dt><dd>Beim Swipen: überspringen · letzte Aktion rückgängig</dd>
+            <dt><span class="kbd" style="border-radius:99px;border-style:dashed">⚑</span></dt><dd>Schon dort gewesen: streicht das Gebiet für alle</dd>
           </dl>
         </div>
       </div>
@@ -392,7 +397,8 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
         <button class="sb yes" type="button" data-sw="1" aria-label="Gerne" title="Gerne (→)">♥</button>
         <button class="sb small" type="button" id="swSkip" aria-label="Überspringen" title="Überspringen">⤼</button>
       </div>
-      <p class="swipe-help">Nach rechts wischen = gerne · nach oben = Top-Favorit · nach links = lieber nicht. Am Computer gehen auch die Pfeiltasten.</p>
+      <button class="sb-been" type="button" id="swBeen" title="Streicht das Gebiet für alle (Taste S)">⚑ Schon dort gewesen</button>
+      <p class="swipe-help">Nach rechts wischen = gerne · nach oben = Top-Favorit · nach links = lieber nicht. „Schon dort gewesen“ streicht das Gebiet für alle. Am Computer gehen auch die Pfeiltasten und S.</p>
     </div>
   </section>
 
@@ -807,7 +813,7 @@ function cardHtml(r, cls){
       <p class="note">${esc(r.note)}</p>
       ${others ? `<div class="others">${others}</div>` : ""}
     </div>
-    ${cls==="top" ? `<span class="stamp yes">GERNE</span><span class="stamp no">NÖ</span><span class="stamp top2">TOP ♥♥</span>` : ""}
+    ${cls==="top" ? `<span class="stamp yes">GERNE</span><span class="stamp no">NÖ</span><span class="stamp top2">TOP ♥♥</span><span class="stamp been">SCHON DORT</span>` : ""}
   </article>`;
 }
 function renderSwipe(all){
@@ -822,7 +828,7 @@ function renderSwipe(all){
   const key = q.slice(0,2).map(r=>r.id+":"+r.mine+":"+Math.round(r.score)+":"+JSON.stringify(r.votes)).join("|") + ui.me;
   if (key === deckKey && $("#deck").children.length) return;
   deckKey = key;
-  document.querySelectorAll("[data-sw],#swSkip").forEach(b => b.disabled = !q.length || !ui.me);
+  document.querySelectorAll("[data-sw],#swSkip,#swBeen").forEach(b => b.disabled = !q.length || !ui.me);
   if (!ui.me){ $("#deck").innerHTML = `<div class="done"><div><h3>Wer bist du?</h3><p class="hint">Wähle oben deinen Namen, dann geht's los.</p></div></div>`; return; }
   if (!q.length){ $("#deck").innerHTML = `<div class="done"><div><h3>Alles bewertet!</h3><p class="hint">Schau unter „Stimmen“, wo ihr euch einig seid. Mit „Bewertete nochmal zeigen“ kannst du deine Stimmen ändern.</p><p><button class="btn" type="button" data-tabgo="votes">Zu den Stimmen</button></p></div></div>`; return; }
   $("#deck").innerHTML = (q[1] ? cardHtml(q[1],"under") : "") + cardHtml(q[0],"top");
@@ -833,6 +839,20 @@ function castSwipe(v){
   const id = c.dataset.id;
   if (v === 0){ skipped = skipped.filter(x=>x!==id).concat(id); }
   flying = true;
+  if (v === "been"){
+    c.style.transition = reduced() ? "opacity .15s" : "transform .3s ease-in, opacity .3s";
+    c.querySelector(".stamp.been").style.opacity = 1;
+    c.style.transform = "translateY(60px) scale(.85)"; c.style.opacity = "0";
+    setTimeout(() => {
+      flying = false; deckKey = "";
+      undoStack.push({id, been:true});
+      setMark(id, {excluded:true, reason:"Schon dort gewesen", by:ui.me});
+      if (db) localMark(id, {excluded:true, reason:"Schon dort gewesen", by:ui.me});
+      toast("Für alle gestrichen. Mit ↶ rückgängig machen.");
+      render();
+    }, reduced() ? 160 : 310);
+    return;
+  }
   const dx = v===1 ? 1 : v===-1 ? -1 : 0, dy = v===2 ? -1 : 0;
   c.style.transition = reduced() ? "opacity .15s" : "transform .28s ease-in, opacity .28s";
   c.style.transform = v===0 ? "translateY(40px) scale(.9)" : `translate(${dx*window.innerWidth}px, ${dy*window.innerHeight}px) rotate(${dx*25}deg)`;
@@ -878,7 +898,7 @@ document.addEventListener("pointerup", endDrag);
 document.addEventListener("pointercancel", endDrag);
 document.addEventListener("keydown", e => {
   if (ui.tab !== "swipe" || e.target.closest("input,select,textarea")) return;
-  const k = {ArrowRight:1, ArrowLeft:-1, ArrowUp:2, ArrowDown:0}[e.key];
+  const k = {ArrowRight:1, ArrowLeft:-1, ArrowUp:2, ArrowDown:0, s:"been", S:"been"}[e.key];
   if (k !== undefined){ e.preventDefault(); castSwipe(k); }
 });
 
@@ -1014,7 +1034,8 @@ document.addEventListener("click", e => {
   else if (b.dataset.me){ ui.me = b.dataset.me; saveUi(); deckKey = ""; undoStack = []; render(); toast(`Hallo ${ui.me}! Deine Stimmen zählen jetzt für dich.`); }
   else if (b.dataset.sw !== undefined) castSwipe(+b.dataset.sw);
   else if (b.id === "swSkip") castSwipe(0);
-  else if (b.id === "swUndo"){ const h = undoStack.pop(); if (h){ setMark(h.id, {votes:{[ui.me]: h.prev}}); if (db) localMark(h.id, {votes:{[ui.me]: h.prev}}); skipped = skipped.filter(x=>x!==h.id); deckKey = ""; render(); } }
+  else if (b.id === "swUndo"){ const h = undoStack.pop(); if (h){ if (h.been){ setMark(h.id, {excluded:false}); if (db) localMark(h.id, {excluded:false}); } else { setMark(h.id, {votes:{[ui.me]: h.prev}}); if (db) localMark(h.id, {votes:{[ui.me]: h.prev}}); } skipped = skipped.filter(x=>x!==h.id); deckKey = ""; render(); } }
+  else if (b.id === "swBeen") castSwipe("been");
   else if (b.id === "swAll" || b.id === "mxAll"){ ui[b.id] = !ui[b.id]; saveUi(); deckKey = ""; render(); }
   else if (b.dataset.route) setSettings({route:b.dataset.route});
   else if (b.dataset.c){ const c=b.dataset.c; ui.countries = ui.countries.includes(c) ? ui.countries.filter(x=>x!==c) : [...ui.countries,c]; saveUi(); render(); }
