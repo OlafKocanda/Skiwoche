@@ -152,6 +152,8 @@ details.fold[open]>summary{margin-bottom:12px}
 .card .hero .snowline{stroke:var(--surface);stroke-width:1.5;stroke-dasharray:3 3}
 .card .hero .elev{fill:var(--ink);font-family:var(--display);font-weight:700;font-size:13px;paint-order:stroke;stroke:var(--accent-soft);stroke-width:3px}
 .card .hero .elev.on{fill:var(--surface);stroke:none}
+.card.is-out .hero{filter:grayscale(.85)}
+.card.is-out .rankpill{background:var(--ink);color:var(--surface)}
 .card .rankpill{position:absolute;top:10px;left:10px;background:var(--surface);border-radius:99px;padding:2px 10px;font-family:var(--display);font-weight:700;font-size:15px}
 .card .scorepill{position:absolute;top:10px;right:10px;background:var(--ink);color:var(--surface);border-radius:99px;padding:2px 10px;font-family:var(--display);font-weight:700;font-size:15px}
 .card .body{padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:auto;flex:1}
@@ -387,7 +389,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     <div class="swipe">
       <div class="swipe-top">
         <div class="progress"><div class="hint" id="swProg"></div><div class="bar"><span id="swBar" style="width:0"></span></div></div>
-        <button class="chip" type="button" id="swAll" aria-pressed="false">Bewertete nochmal zeigen</button>
+        <div class="chips"><button class="chip" type="button" id="swAll" aria-pressed="false">Bewertete nochmal zeigen</button><button class="chip" type="button" id="swOut" aria-pressed="true">Schon besuchte zeigen</button></div>
       </div>
       <div class="deck" id="deck"></div>
       <div class="swipe-btns">
@@ -632,7 +634,7 @@ let db = null, readOnly = false;
 let open = null, striking = null;
 let editingSettings = 0;
 const L = (() => { try { return JSON.parse(localStorage.getItem("ski-ui")||"{}"); } catch { return {}; } })();
-const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,mxAll:false,guideSeen:false}, L);
+const ui = Object.assign({tab:"swipe",view:"alps",minKm:100,maxDrive:600,minTop:1900,countries:["AT","CH","IT","FR"],onlyFav:false,showOut:false,glacier:false,sort:"score",dir:-1,me:null,swAll:false,swOut:true,mxAll:false,guideSeen:false}, L);
 if (!PEOPLE.some(p => p.n === ui.me)) ui.me = null;
 const hashTab = (location.hash||"").slice(1); if (TABS.includes(hashTab)) ui.tab = hashTab;
 if (!TABS.includes(ui.tab)) ui.tab = "swipe";
@@ -777,8 +779,8 @@ let skipped = [];          // in dieser Sitzung übersprungen
 let undoStack = [];        // [{id, prev}]
 let drag = null, flying = false, deckKey = "";
 function swipeQueue(all){
-  let q = all.filter(r => !r.excluded && (ui.swAll || !r.mine));
-  q.sort((a,b) => (skipped.indexOf(a.id)) - (skipped.indexOf(b.id)) || b.score - a.score);
+  let q = all.filter(r => (ui.swOut || !r.excluded) && (ui.swAll || !r.mine));
+  q.sort((a,b) => (a.excluded - b.excluded) || (skipped.indexOf(a.id)) - (skipped.indexOf(b.id)) || b.score - a.score);
   return q;
 }
 function elevSvg(r){
@@ -796,8 +798,8 @@ function elevSvg(r){
 }
 function cardHtml(r, cls){
   const others = PEOPLE.filter(p => p.n !== ui.me && r.votes[p.n]).map(p => `<span class="badge ${r.votes[p.n]<0?"veto":"vote"}">${p.n} ${VOTE[r.votes[p.n]]}</span>`).join("");
-  return `<article class="card ${cls}" data-id="${r.id}" aria-label="${esc(r.name)}">
-    <div class="hero">${elevSvg(r)}<span class="rankpill">#${r.rank}</span><span class="scorepill num">${Math.round(r.score)} Pkt.</span></div>
+  return `<article class="card ${cls} ${r.excluded?"is-out":""}" data-id="${r.id}" aria-label="${esc(r.name)}">
+    <div class="hero">${elevSvg(r)}<span class="rankpill">${r.excluded ? "⚑ Schon dort gewesen" : "#"+r.rank}</span><span class="scorepill num">${Math.round(r.score)} Pkt.</span></div>
     <div class="body">
       <div><h3>${esc(r.name)}</h3><div class="sub">${esc(r.sub)} · ${COUNTRY[r.c]}${r.glacier?" · Gletscher":""}</div></div>
       <div class="facts">
@@ -817,21 +819,23 @@ function cardHtml(r, cls){
   </article>`;
 }
 function renderSwipe(all){
-  const total = all.filter(r=>!r.excluded).length;
-  const done = all.filter(r=>!r.excluded && r.mine).length;
+  const total = all.filter(r=>ui.swOut || !r.excluded).length;
+  const done = all.filter(r=>(ui.swOut || !r.excluded) && r.mine).length;
+  $("#swOut").setAttribute("aria-pressed", ui.swOut);
   $("#swProg").textContent = ui.me ? `${ui.me}: ${done} von ${total} bewertet` : "Wähle oben, wer du bist";
   $("#swBar").style.width = (total ? done/total*100 : 0) + "%";
   $("#swAll").setAttribute("aria-pressed", ui.swAll);
   $("#swUndo").disabled = !undoStack.length;
   if (drag || flying) return;
   const q = swipeQueue(all);
-  const key = q.slice(0,2).map(r=>r.id+":"+r.mine+":"+Math.round(r.score)+":"+JSON.stringify(r.votes)).join("|") + ui.me;
+  const key = q.slice(0,2).map(r=>r.id+":"+r.excluded+":"+r.mine+":"+Math.round(r.score)+":"+JSON.stringify(r.votes)).join("|") + ui.me;
   if (key === deckKey && $("#deck").children.length) return;
   deckKey = key;
   document.querySelectorAll("[data-sw],#swSkip,#swBeen").forEach(b => b.disabled = !q.length || !ui.me);
   if (!ui.me){ $("#deck").innerHTML = `<div class="done"><div><h3>Wer bist du?</h3><p class="hint">Wähle oben deinen Namen, dann geht's los.</p></div></div>`; return; }
   if (!q.length){ $("#deck").innerHTML = `<div class="done"><div><h3>Alles bewertet!</h3><p class="hint">Schau unter „Stimmen“, wo ihr euch einig seid. Mit „Bewertete nochmal zeigen“ kannst du deine Stimmen ändern.</p><p><button class="btn" type="button" data-tabgo="votes">Zu den Stimmen</button></p></div></div>`; return; }
   $("#deck").innerHTML = (q[1] ? cardHtml(q[1],"under") : "") + cardHtml(q[0],"top");
+  $("#swBeen").textContent = q[0].excluded ? "↺ Wieder aufnehmen" : "⚑ Schon dort gewesen";
 }
 function castSwipe(v){
   const c = $("#deck .card.top"); if (!c || flying) return;
@@ -899,7 +903,7 @@ document.addEventListener("pointercancel", endDrag);
 document.addEventListener("keydown", e => {
   if (ui.tab !== "swipe" || e.target.closest("input,select,textarea")) return;
   const k = {ArrowRight:1, ArrowLeft:-1, ArrowUp:2, ArrowDown:0, s:"been", S:"been"}[e.key];
-  if (k !== undefined){ e.preventDefault(); castSwipe(k); }
+  if (k !== undefined){ e.preventDefault(); if (k === "been") $("#swBeen").click(); else castSwipe(k); }
 });
 
 // ---------- Stimmen ----------
@@ -1034,9 +1038,13 @@ document.addEventListener("click", e => {
   else if (b.dataset.me){ ui.me = b.dataset.me; saveUi(); deckKey = ""; undoStack = []; render(); toast(`Hallo ${ui.me}! Deine Stimmen zählen jetzt für dich.`); }
   else if (b.dataset.sw !== undefined) castSwipe(+b.dataset.sw);
   else if (b.id === "swSkip") castSwipe(0);
-  else if (b.id === "swUndo"){ const h = undoStack.pop(); if (h){ if (h.been){ setMark(h.id, {excluded:false}); if (db) localMark(h.id, {excluded:false}); } else { setMark(h.id, {votes:{[ui.me]: h.prev}}); if (db) localMark(h.id, {votes:{[ui.me]: h.prev}}); } skipped = skipped.filter(x=>x!==h.id); deckKey = ""; render(); } }
-  else if (b.id === "swBeen") castSwipe("been");
-  else if (b.id === "swAll" || b.id === "mxAll"){ ui[b.id] = !ui[b.id]; saveUi(); deckKey = ""; render(); }
+  else if (b.id === "swUndo"){ const h = undoStack.pop(); if (h){ if (h.been || h.unbeen){ const ex = !!h.unbeen; setMark(h.id, {excluded:ex}); if (db) localMark(h.id, {excluded:ex}); } else { setMark(h.id, {votes:{[ui.me]: h.prev}}); if (db) localMark(h.id, {votes:{[ui.me]: h.prev}}); } skipped = skipped.filter(x=>x!==h.id); deckKey = ""; render(); } }
+  else if (b.id === "swBeen"){
+    const c = $("#deck .card.top"); const id = c && c.dataset.id;
+    if (id && marks[id]?.excluded){ undoStack.push({id, unbeen:true}); setMark(id, {excluded:false}); if (db) localMark(id, {excluded:false}); deckKey = ""; toast("Wieder aufgenommen."); render(); }
+    else castSwipe("been");
+  }
+  else if (b.id === "swAll" || b.id === "mxAll" || b.id === "swOut"){ ui[b.id] = !ui[b.id]; saveUi(); deckKey = ""; render(); }
   else if (b.dataset.route) setSettings({route:b.dataset.route});
   else if (b.dataset.c){ const c=b.dataset.c; ui.countries = ui.countries.includes(c) ? ui.countries.filter(x=>x!==c) : [...ui.countries,c]; saveUi(); render(); }
   else if (b.id === "onlyFav" || b.id === "showOut" || b.id === "glacier"){ ui[b.id] = !ui[b.id]; saveUi(); render(); }
