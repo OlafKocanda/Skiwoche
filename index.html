@@ -1293,7 +1293,8 @@ const QUIZ = [
   {k:"apres", q:"Wie sehen deine Abende aus?", o:[[0,"Sauna, essen, früh ins Bett"],[2,"Ein, zwei Bier an der Hütte"],[4,"Après-Ski gehört dazu"],[5,"Party bis spät"]]},
   {k:"lodge", q:"Wie wichtig ist eine günstige Unterkunft?", o:[[0,"Egal, darf auch teuer sein"],[2,"Sollte im Rahmen bleiben"],[4,"Ziemlich wichtig"],[5,"So günstig wie möglich"]]},
 ];
-let quizStep = 0, quizAns = {};
+let quizStep = 0, quizAns = {}, quizFromIntro = false;
+function quizDone(){ $("#quiz").hidden = true; ui.quizAsked = true; saveUi(); if (quizFromIntro){ quizFromIntro = false; const i = INTRO.findIndex(s => s.quiz); introStep = i + 1; $("#intro").hidden = false; renderIntro(); } }
 const answersOf = () => settings.answers || {};
 function groupWeights(){
   const ans = Object.values(answersOf()).filter(a => a && typeof a === "object");
@@ -1309,7 +1310,7 @@ function renderQuizState(){
 function renderQuiz(){
   const body = $("#quizBody");
   $("#quizDots").innerHTML = QUIZ.map((_,i)=>`<i class="${i===quizStep?"on":""}"></i>`).join("") + `<i class="${quizStep===QUIZ.length?"on":""}"></i>`;
-  $("#quizBack").textContent = quizStep === 0 ? "Abbrechen" : (quizStep === QUIZ.length ? "Schließen" : "Zurück");
+  $("#quizBack").textContent = quizStep === 0 ? (quizFromIntro ? "Überspringen" : "Abbrechen") : (quizStep === QUIZ.length ? (quizFromIntro ? "Weiter ohne Übernehmen" : "Schließen") : "Zurück");
   if (quizStep < QUIZ.length){
     const s = QUIZ[quizStep], c = CRIT.find(x => x.k === s.k);
     body.innerHTML = `<div class="eyebrow">Frage ${quizStep+1} von ${QUIZ.length} · ${c.label}</div><h2 id="quizTitle" style="font-size:24px">${s.q}</h2>
@@ -1322,12 +1323,12 @@ function renderQuiz(){
     <div style="overflow-x:auto"><table class="qres"><thead><tr><th></th>${PEOPLE.map(p=>`<th>${p.n}</th>`).join("")}<th title="Schnitt">Ø</th></tr></thead>
     <tbody>${CRIT.map(c => `<tr><td>${({snow:"Schnee",size:"Größe",price:"Skipass",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"})[c.k]}</td>${PEOPLE.map(p=>`<td>${cell(p.n,c.k)}</td>`).join("")}<td class="avg">${g[c.k]}</td></tr>`).join("")}</tbody></table></div>
     <p class="hint">Ø = Schnitt aller, die geantwortet haben (${PEOPLE.filter(p=>a[p.n]).length}/4). Übernehmen setzt die Regler für alle auf diese Werte. Ihr könnt sie danach trotzdem noch verschieben.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" id="quizApply">Schnitt für alle übernehmen</button><button class="btn" type="button" id="quizRetake">Meine Antworten ändern</button></div>`;
+    <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" id="quizApply">${quizFromIntro ? "Schnitt übernehmen und weiter" : "Schnitt für alle übernehmen"}</button><button class="btn" type="button" id="quizRetake">Meine Antworten ändern</button></div>`;
 }
-function openQuiz(){
+function openQuiz(fresh){
   if (!ui.me){ toast("Wähle zuerst oben, wer du bist."); $("#mebox").scrollIntoView({block:"center"}); return; }
   quizAns = {...(answersOf()[ui.me] || {})};
-  quizStep = answersOf()[ui.me] ? QUIZ.length : 0;
+  quizStep = (!fresh && answersOf()[ui.me]) ? QUIZ.length : 0;
   $("#quiz").hidden = false; renderQuiz();
 }
 async function saveAnswers(){
@@ -1345,10 +1346,10 @@ document.addEventListener("click", e => {
     setTimeout(async () => { quizStep++; if (quizStep === QUIZ.length) await saveAnswers(); renderQuiz(); }, 180);
     return;
   }
-  if (b.id === "quizBack"){ if (quizStep === 0 || quizStep === QUIZ.length) $("#quiz").hidden = true; else { quizStep--; renderQuiz(); } return; }
-  if (b.id === "quizApply"){ const g = groupWeights(); if (g){ setSettings({weights:g}); toast("Regler für alle gesetzt."); } $("#quiz").hidden = true; }
+  if (b.id === "quizBack"){ if (quizStep === 0 || quizStep === QUIZ.length) quizDone(); else { quizStep--; renderQuiz(); } return; }
+  if (b.id === "quizApply"){ const g = groupWeights(); if (g){ setSettings({weights:g}); toast("Regler für alle gesetzt."); } quizDone(); }
 });
-document.addEventListener("keydown", e => { if (!$("#quiz").hidden && e.key === "Escape"){ $("#quiz").hidden = true; e.stopPropagation(); } }, true);
+document.addEventListener("keydown", e => { if (!$("#quiz").hidden && e.key === "Escape"){ quizDone(); e.stopPropagation(); } }, true);
 
 // ---------- Intro beim ersten Öffnen ----------
 const MTN = (fill2) => `<svg viewBox="0 0 420 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 L0 95 L70 70 L140 98 L230 40 L300 75 L360 55 L420 80 L420 150Z" style="fill:var(--accent);opacity:.3"/><path d="M0 150 L0 120 L90 92 L170 112 L260 62 L330 96 L420 84 L420 150Z" style="fill:var(--accent)"/><path d="M232 62 L260 62 L246 52Z" style="fill:var(--surface);opacity:.9"/>${fill2||""}</svg>`;
@@ -1364,8 +1365,9 @@ const INTRO = [
    ready: () => !!ui.me},
   {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${[["Schnee",5],["Fahrt",4],["Größe",3],["Freeride",3]].map(([l,v],i)=>`<text x="70" y="${34+i*30}" style="fill:var(--ink);font:600 15px var(--body)">${l}</text><rect x="160" y="${24+i*30}" width="190" height="6" rx="3" style="fill:var(--surface)"/><rect x="160" y="${24+i*30}" width="${v*38}" height="6" rx="3" style="fill:var(--accent)"/><circle cx="${160+v*38}" cy="${27+i*30}" r="8" style="fill:var(--accent)"/>`).join("")}</svg>`,
    body: () => `<div class="eyebrow">Schritt 2</div><h2 id="introTitle">Was ist euch wichtig?</h2>
-     <p>Oben auf der Seite stellt ihr ein, wie stark Schnee im März, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft zählen. Daraus entstehen Punkte und Rang jedes Gebiets.</p>
-     <p class="hint">Die Regler gelten für alle vier. Am einfachsten: Jeder beantwortet dort die <b>7 kurzen Fragen</b>, dann übernehmt ihr den Schnitt.</p>`},
+     <p>Wie stark zählen Schnee im März, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft? Daraus entstehen Punkte und Rang jedes Gebiets.</p>
+     <p>Dafür kommen jetzt <b>7 kurze Fragen</b>. Aus euren Antworten wird der Schnitt gebildet und als Gewichtung für alle übernommen.</p>
+     <p class="hint">Später findest du die Fragen und die Regler oben unter „Was ist euch wichtig?“.</p>`, quiz:true},
   {art: () => `<div class="mini-card"></div><svg viewBox="0 0 420 150" aria-hidden="true" style="pointer-events:none"><text x="408" y="95" text-anchor="end" style="fill:var(--good);font:700 18px var(--display)">♥ GERNE →</text><text x="12" y="95" style="fill:var(--ink);font:700 18px var(--display)">← ✕ NÖ</text><text x="210" y="26" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">↑ ♥♥ TOP</text></svg>`,
    body: () => `<div class="eyebrow">Schritt 3</div><h2 id="introTitle">Swipen wie bei Tinder</h2>
      <ul>
@@ -1387,7 +1389,7 @@ function renderIntro(){
   $("#introBody").innerHTML = s.body();
   $("#introDots").innerHTML = INTRO.map((_,i)=>`<i class="${i===introStep?"on":""}"></i>`).join("");
   const last = introStep === INTRO.length-1;
-  $("#introNext").textContent = last ? "Los geht’s" : "Weiter";
+  $("#introNext").textContent = last ? "Los geht’s" : (s.quiz ? "Fragen starten" : "Weiter");
   $("#introNext").disabled = s.ready ? !s.ready() : false;
   $("#introSkip").textContent = introStep === 0 ? "Überspringen" : "Zurück";
 }
@@ -1397,7 +1399,10 @@ document.addEventListener("click", e => {
   const b = e.target.closest("#intro button, #introAgain"); if (!b) return;
   if (b.id === "introAgain"){ openIntro(); return; }
   if (b.dataset.introme){ ui.me = b.dataset.introme; saveUi(); deckKey = ""; undoStack = []; render(); renderIntro(); return; }
-  if (b.id === "introNext"){ if (introStep < INTRO.length-1){ introStep++; renderIntro(); } else closeIntro(); }
+  if (b.id === "introNext"){
+    if (INTRO[introStep].quiz){ $("#intro").hidden = true; quizFromIntro = true; openQuiz(true); return; }
+    if (introStep < INTRO.length-1){ introStep++; renderIntro(); } else closeIntro();
+  }
   if (b.id === "introSkip"){ if (introStep === 0) closeIntro(); else { introStep--; renderIntro(); } }
 });
 document.addEventListener("keydown", e => {
@@ -1408,6 +1413,10 @@ document.addEventListener("keydown", e => {
   e.stopPropagation();
 }, true);
 if (!ui.introSeen) openIntro();
+else if (!ui.quizAsked && ui.me){
+  // kurz warten, bis die gespeicherten Antworten geladen sind
+  setTimeout(() => { if (!ui.quizAsked && $("#intro").hidden && $("#quiz").hidden){ if (answersOf()[ui.me]){ ui.quizAsked = true; saveUi(); } else openQuiz(true); } }, 2500);
+}
 
 render();
 
