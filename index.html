@@ -263,6 +263,10 @@ table.matrix{border-collapse:collapse;width:100%;min-width:480px;font-size:14px}
 .ttip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:6px 9px;border-radius:6px;max-width:240px;line-height:1.3;transform:translate(-50%,calc(-100% - 10px))}
 .ttip b{font-family:var(--display);font-size:15px}
 
+.piste{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:6px 12px;font-weight:600;font-size:14px;text-decoration:none}
+.piste svg{width:18px;height:18px}
+.piste:hover{background:var(--accent);color:var(--surface)}
+
 /* Rangliste kompakt */
 .ctable-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
 table.ctable{width:100%;border-collapse:collapse;font-size:14px;table-layout:auto}
@@ -633,6 +637,9 @@ const RAW = [
 const VILLAGE = {arlberg:[1304,"St. Anton"],ischgl:[1377,"Ischgl"],sfl:[1427,"Serfaus"],soelden:[1368,"Sölden"],obergurgl:[1907,"Obergurgl"],montafon:[1000,"Gaschurn"],damuels:[1431,"Damüls"],skiwelt:[820,"Ellmau"],kitz:[762,"Kitzbühel"],saalbach:[1003,"Saalbach"],zellkaprun:[786,"Kaprun"],mayrhofen:[630,"Mayrhofen"],zarena:[1245,"Gerlos"],alpbach:[975,"Alpbach"],schladming:[745,"Schladming"],snowspace:[925,"Flachau"],obertauern:[1740,"Obertauern"],gastein:[1002,"Bad Gastein"],laax:[1020,"Laax"],davos:[1560,"Davos"],arosa:[1470,"Lenzerheide"],stmoritz:[1822,"St. Moritz"],andermatt:[1444,"Andermatt"],zermatt:[1608,"Zermatt"],verbier:[1500,"Verbier"],jungfrau:[1034,"Grindelwald"],saasfee:[1800,"Saas-Fee"],gardena:[1563,"Wolkenstein"],altabadia:[1568,"Corvara"],kronplatz:[1000,"Olang"],dreizinnen:[1310,"Sexten"],livigno:[1816,"Livigno"],campiglio:[1550,"Madonna di Campiglio"],"3v":[1450,"Méribel"],killy:[1850,"Val d'Isère"],paradiski:[1800,"Les Arcs"],pds:[1000,"Morzine"],adh:[1860,"Alpe d'Huez"]};
 // Recherchierte Skipass-Preise (6 Tage, Erwachsene, März): id → [€, Saison, dynamisch, Quelle, Notiz]
 const PRICE_DATE = "3. Oktober 2026";
+// Pistenpläne: id → URL (offizielle Seite des Gebiets, sonst skimap.org/bergfex)
+const PISTE = {};
+const pisteBtn = r => PISTE[r.id] ? `<a class="piste" href="${esc(PISTE[r.id])}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20l6-13 4 7 3-4 5 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Pistenplan ↗</a>` : "";
 const PRICES = {"arlberg": [468, "26/27", false, "https://www.skiarlberg.at/en/Ski-Arlberg/Ski-tickets/Skipasspreise1", "Hauptsaison bis 2.4.2027, offizielle Preisliste"],
 "ischgl": [451, "26/27", false, "https://tickets.ischgl.com/en/winter/support/prices", "Silvretta Skipass ohne Gästekarte; mit Gästekarte (Ischgl-Samnaun) 385 €"],
 "sfl": [403, "26/27", false, "https://www.schneehoehen.de/skigebiete/preise/serfaus-fiss-ladis", "Hauptsaison, mit Gästekarte"],
@@ -823,6 +830,7 @@ function renderList(all, list){
       </div>
       ${isOpen ? `<div class="more">
         <p>${esc(r.note)} <a href="https://${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></p>
+        ${pisteBtn(r) ? `<p>${pisteBtn(r)}</p>` : ""}
         <p class="hint num">Höhe: Berg ${m(r.top)} · ${esc(r.vname)} ${m(r.village)} · Tal ${m(r.base)} · ${(r.top-r.base).toLocaleString("de-DE")} Höhenmeter</p>
         ${pr ? `<p class="hint">Skipass ${pr[0] ? Math.round(pr[0])+" €" : "ca. "+r.pass+" € (geschätzt)"} (${pr[1]}${pr[2]?", dynamisch":""})${pr[4]?": "+esc(pr[4]):""}${pr[3]?` · <a href="${esc(pr[3])}" target="_blank" rel="noopener">Quelle</a>`:""}</p>` : `<p class="hint">Skipass-Preis ist eine Schätzung.</p>`}
         <div class="trip">
@@ -904,6 +912,7 @@ function cardHtml(r, cls){
         <div class="fact" style="grid-column:span 2"><span>Fahrt</span>${r.t.mode==="via" ? `<b class="num">${fmt(r.t.time)}</b> <small>über Feldkirch</small>` : `<div class="drive2"><div><b class="num">${fmt(r.f)}</b><small>ab Bad Soden</small></div><div><b class="num">${fmt(r.fk)}</b><small>ab Feldkirch</small></div></div>`}</div>
       </div>
       <p class="note">${esc(r.note)}</p>
+      ${pisteBtn(r) ? `<div>${pisteBtn(r)}</div>` : ""}
       ${others ? `<div class="others">${others}</div>` : ""}
     </div>
     ${cls==="top" ? `<span class="stamp yes">GERNE</span><span class="stamp no">NÖ</span><span class="stamp top2">TOP ♥♥</span><span class="stamp been">SCHON DORT</span>` : ""}
