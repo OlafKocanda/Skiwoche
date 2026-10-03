@@ -417,7 +417,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
           <dl class="sym">
             <dt id="gDots"></dt><dd>Bewertung 1–5 (hier 3 von 5) für Schnee im März, Freeride und Après-Ski. Blau = erfüllt, grau = leer.</dd>
             <dt id="gEur"></dt><dd>Preisniveau der Unterkunft (hier 1 von 3 = günstig)</dd>
-            <dt><b class="num" style="font-family:var(--display);font-size:18px">71</b></dt><dd>Punkte 0–100 nach eurer Gewichtung („Was ist euch wichtig?“), bestimmen Rang und Swipe-Reihenfolge. Punkte und Stimmen sind getrennt: Herzen ändern die Punkte nicht.</dd>
+            <dt><b class="num" style="font-family:var(--display);font-size:18px">71</b></dt><dd>Punkte 0–100 nach eurer Gewichtung („Was ist euch wichtig?“), bestimmen Rang und Swipe-Reihenfolge. Volle Teilpunkte gibt es ab 300 km Piste, bis 350 € Skipass und bis 5:30 h Fahrt; 100 Punkte hätte also ein Gebiet, das überall das Ziel erreicht. Punkte und Stimmen sind getrennt: Herzen ändern die Punkte nicht.</dd>
           </dl>
         </div>
         <div>
@@ -439,7 +439,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     <summary><h2>Was ist euch wichtig?</h2><span class="wsum" id="wSum"></span></summary>
     <div style="display:grid;gap:10px">
       <div class="weights" id="weights"></div>
-      <p class="hint">0 = egal, 5 = sehr wichtig. Bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Gilt für alle vier, Änderungen sehen alle sofort. Schnee ist für März bewertet. <button class="linkbtn" id="resetW" type="button">Auf Standard setzen</button></p>
+      <p class="hint">0 = egal, 5 = sehr wichtig. Bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Volle Teilpunkte: ab 300 km Piste, bis 350 € Skipass, bis 5:30 h Fahrt, 5 von 5 bei Schnee, Freeride und Après, € bei der Unterkunft. Null Teilpunkte: 100 km, 470 €, 9 h. Gilt für alle vier, Änderungen sehen alle sofort. Schnee ist für März bewertet. <button class="linkbtn" id="resetW" type="button">Auf Standard setzen</button></p>
     </div>
   </details>
 
@@ -759,6 +759,20 @@ function trip(r){
   return {mode, via, split, detour, time: mode === "via" ? via : split};
 }
 
+// Teilpunkte 0–1 auf festen Skalen: Wer das Ziel erreicht, bekommt volle Punkte. So ist ein perfektes Gebiet möglich.
+const TARGET = {kmMin:100, kmFull:300, passFull:350, passZero:470, driveFull:330, driveZero:540};
+const clamp01 = v => Math.max(0, Math.min(1, v));
+function subScores(r, t){
+  return {
+    snow:  (r.snow-1)/4,
+    size:  clamp01(Math.log(r.km/TARGET.kmMin) / Math.log(TARGET.kmFull/TARGET.kmMin)),
+    price: clamp01((TARGET.passZero - r.pass) / (TARGET.passZero - TARGET.passFull)),
+    drive: clamp01((TARGET.driveZero - t.time) / (TARGET.driveZero - TARGET.driveFull)),
+    free:  (r.free-1)/4,
+    apres: (r.apres-1)/4,
+    lodge: (3-r.lodge)/2
+  };
+}
 function scored(){
   const T = new Map(R.map(r => [r.id, trip(r)]));
   const ext = f => { const v = R.map(f); return [Math.min(...v), Math.max(...v)]; };
@@ -767,7 +781,7 @@ function scored(){
   const w = settings.weights; const tot = CRIT.reduce((a,c)=>a+(w[c.k]||0),0) || 1;
   const out = R.map(r => {
     const t = T.get(r.id);
-    const s = {snow:n(r.snow,rng.snow), size:n(Math.log(r.km),rng.size), price:n(r.pass,rng.price,1), drive:n(t.time,rng.drive,1), free:n(r.free,rng.free), apres:n(r.apres,rng.apres), lodge:n(r.lodge,rng.lodge,1)};
+    const s = subScores(r, t);
     const score = CRIT.reduce((a,c)=>a + (w[c.k]||0)*s[c.k], 0) / tot * 100;
     const mk = marks[r.id] || {};
     const votes = {}; let sum = 0, cnt = 0, pos = 0, neg = 0;
