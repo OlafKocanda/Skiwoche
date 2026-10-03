@@ -88,6 +88,11 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--surfa
 .field input[type=number]{width:70px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
 .hint{font-size:13px;color:var(--muted);margin:0;max-width:80ch}
 .callout{font-size:14px;margin:0;padding:8px 12px;border-radius:8px;background:var(--accent-soft)}
+.desk.single{grid-template-columns:1fr}
+@media (max-width:700px){details.fold.panel,details.fold.route{padding:11px 14px;gap:8px} details.fold>summary h2{font-size:19px} details.fold>summary .hint{font-size:12px} .wsum{justify-content:flex-start;flex-basis:100%;order:3}}
+.wsum{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13px;color:var(--muted);flex:1;justify-content:flex-end}
+.wsum b{color:var(--accent);font-family:var(--display);font-size:15px}
+#wFold>summary{flex-wrap:wrap}
 .desk{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}
 @media (max-width:820px){.desk{grid-template-columns:1fr}}
 details.fold>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -376,6 +381,14 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     </div>
   </details>
 
+  <details class="panel fold" id="wFold">
+    <summary><h2>Was ist euch wichtig?</h2><span class="wsum" id="wSum"></span></summary>
+    <div style="display:grid;gap:10px">
+      <div class="weights" id="weights"></div>
+      <p class="hint">0 = egal, 5 = sehr wichtig. Bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Gilt für alle vier, Änderungen sehen alle sofort. Schnee ist für März bewertet. <button class="linkbtn" id="resetW" type="button">Auf Standard setzen</button></p>
+    </div>
+  </details>
+
   <nav class="tabs" role="tablist" aria-label="Ansichten">
     <button type="button" role="tab" data-tab="swipe" id="t-swipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2" transform="rotate(-8 11 11)"/><path d="M20 8l1 9"/></svg>Swipen</button>
     <button type="button" role="tab" data-tab="list" id="t-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>Rangliste</button>
@@ -428,14 +441,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
         <p class="callout">Ostern ist am 28. März 2027. Die Woche davor und danach fallen in die Osterferien: Pisten und Straßen werden voller, Unterkünfte teurer. Anfang bis Mitte März ist meist ruhiger.</p>
       </div>
     </details>
-    <div class="desk">
-      <details class="panel fold" id="wFold">
-        <summary><h2>Was ist euch wichtig?</h2></summary>
-        <div style="display:grid;gap:10px">
-          <div class="weights" id="weights"></div>
-          <p class="hint">0 = egal, 5 = sehr wichtig. Gilt für alle vier. Schnee ist für März bewertet. <button class="linkbtn" id="resetW" type="button">Auf Standard setzen</button></p>
-        </div>
-      </details>
+    <div class="desk single">
       <details class="panel fold" id="fFold">
         <summary><h2>Filter</h2><span class="hint" id="filterSum"></span></summary>
         <div class="filters">
@@ -683,6 +689,11 @@ function render(){
   for (const t of TABS){ const on = ui.tab === t; $("#t-"+t).setAttribute("aria-selected", String(on)); $("#p-"+t).hidden = !on; }
   $("#priceDate").textContent = PRICE_DATE;
 
+  const wbox = $("#weights");
+  if (!wbox.children.length) wbox.innerHTML = CRIT.map(c => `<div class="w"><label for="w-${c.k}">${c.label}</label><output id="o-${c.k}" for="w-${c.k}"></output><input type="range" id="w-${c.k}" min="0" max="5" step="1" data-w="${c.k}"></div>`).join("");
+  for (const c of CRIT){ const i = $("#w-"+c.k); if (document.activeElement !== i) i.value = settings.weights[c.k]; $("#o-"+c.k).textContent = settings.weights[c.k]; }
+  const SHORT = {snow:"Schnee",size:"Größe",price:"Preis",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"};
+  $("#wSum").innerHTML = $("#wFold").open ? "" : CRIT.slice().sort((a,b)=>settings.weights[b.k]-settings.weights[a.k]).filter(c=>settings.weights[c.k]>0).map(c=>`<span>${SHORT[c.k]} <b class="num">${settings.weights[c.k]}</b></span>`).join("");
   const list = filtered(all);
   if (ui.tab === "swipe") renderSwipe(all);
   if (ui.tab === "list") renderList(all, list);
@@ -706,9 +717,6 @@ function renderList(all, list){
   $("#routeSum").textContent = {auto:"automatisch",split:"getrennt",via:"über Feldkirch"}[settings.route];
   for (const id of ["detour","pickup","koeln"]) if (document.activeElement !== $("#"+id)) $("#"+id).value = settings[id];
 
-  const wbox = $("#weights");
-  if (!wbox.children.length) wbox.innerHTML = CRIT.map(c => `<div class="w"><label for="w-${c.k}">${c.label}</label><output id="o-${c.k}" for="w-${c.k}"></output><input type="range" id="w-${c.k}" min="0" max="5" step="1" data-w="${c.k}"></div>`).join("");
-  for (const c of CRIT){ const i = $("#w-"+c.k); if (document.activeElement !== i) i.value = settings.weights[c.k]; $("#o-"+c.k).textContent = settings.weights[c.k]; }
 
   $("#minKm").value = ui.minKm; $("#minKmV").textContent = ui.minKm + " km";
   $("#maxDrive").value = ui.maxDrive; $("#maxDriveV").textContent = ui.maxDrive >= 600 ? "egal" : fmt(ui.maxDrive);
@@ -1093,7 +1101,9 @@ document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id
 $("#gDots").innerHTML = dots(3); $("#gEur").innerHTML = euros(1);
 if (!ui.guideSeen) $("#guide").open = true;
 $("#guide").addEventListener("toggle", () => { if (!$("#guide").open && !ui.guideSeen){ ui.guideSeen = true; saveUi(); } });
-if (matchMedia("(min-width: 821px)").matches){ $("#wFold").open = true; $("#fFold").open = true; }
+if (matchMedia("(min-width: 821px)").matches){ $("#fFold").open = true; }
+$("#wFold").open = ui.wOpen ?? matchMedia("(min-width: 821px)").matches;
+$("#wFold").addEventListener("toggle", () => { ui.wOpen = $("#wFold").open; saveUi(); render(); });
 
 render();
 
