@@ -5,17 +5,75 @@
       "marks": {
         "$id": {
           ".write": "$id.length <= 30",
-          "excluded": { ".validate": "newData.isBoolean()" },
-          "reason": { ".validate": "newData.isString() && newData.val().length <= 80" },
-          "by": { ".validate": "newData.isString() && newData.val().length <= 20" },
-          "votes": {
-            "$person": { ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && newData.val() >= -1 && newData.val() <= 2" }
+          "excluded": {
+            ".validate": "newData.isBoolean()"
           },
-          "$other": { ".validate": false }
+          "reason": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "by": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "votes": {
+            "$person": {
+              ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && newData.val() >= -1 && newData.val() <= 2"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       },
-      "settings": { ".write": true, ".validate": "newData.hasChildren(['weights'])" },
-      "meta": { ".write": true }
+      "settings": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['weights'])"
+      },
+      "meta": {
+        ".write": true
+      },
+      "stays": {
+        "$area": {
+          "$stay": {
+            ".write": "$area.length <= 30 && $stay.length <= 40",
+            ".validate": "newData.hasChildren(['title','by'])",
+            "url": {
+              ".validate": "newData.isString() && newData.val().length <= 600 && newData.val().beginsWith('http')"
+            },
+            "title": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+            },
+            "price": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20000"
+            },
+            "sauna": {
+              ".validate": "newData.isBoolean()"
+            },
+            "access": {
+              ".validate": "newData.val() === 'skiin' || newData.val() === 'walk' || newData.val() === 'bus' || newData.val() === 'car'"
+            },
+            "dist": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50000"
+            },
+            "note": {
+              ".validate": "newData.isString() && newData.val().length <= 300"
+            },
+            "by": {
+              ".validate": "newData.val() === 'Joni' || newData.val() === 'Achim' || newData.val() === 'Adrian' || newData.val() === 'Olaf'"
+            },
+            "ts": {
+              ".validate": "newData.isNumber()"
+            },
+            "votes": {
+              "$person": {
+                ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
     }
   }
 }

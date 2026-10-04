@@ -153,6 +153,50 @@ details.fold[open]>summary{margin-bottom:12px}
 @media (prefers-reduced-motion:no-preference){.mini-card{animation:wiggle 2.4s ease-in-out infinite}}
 @keyframes wiggle{0%,100%{transform:translate(-50%,-50%) rotate(-6deg)}50%{transform:translate(-30%,-50%) rotate(8deg)}}
 
+/* Planen */
+.tripdates{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.tripdates input[type=date]{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.plan-list{display:grid;gap:14px}
+.pcard2{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:12px;min-width:0}
+.pcard2 header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pcard2 header h3{font-size:22px}
+.pcard2 .meta{font-size:13px;color:var(--muted)}
+.pcard2 h4{margin:0;font-family:var(--display);font-size:16px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.bases{display:grid;gap:8px}
+.base{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--bg)}
+.base b{font-size:15px}
+.base .note{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.base .links{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1}
+.base .links a{font-size:13px;font-weight:600;text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:3px 10px;background:var(--surface);color:var(--ink)}
+.base .links a:hover{border-color:var(--accent);color:var(--accent)}
+.acc{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:4px;padding:2px 6px;white-space:nowrap}
+.acc.lift,.acc.skiin{background:var(--good-soft);color:var(--good)}
+.acc.walk{background:var(--good-soft);color:var(--good)}
+.acc.bus{background:var(--accent-soft);color:var(--accent)}
+.acc.car{background:var(--signal-soft);color:var(--signal)}
+.stays{display:grid;gap:8px}
+.stay{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stay.top{border-color:var(--good)}
+.stay a.t{font-weight:600;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.stay a.t:hover{color:var(--accent)}
+.stay .pp{text-align:right;font-family:var(--display);font-size:18px;font-weight:700;white-space:nowrap}
+.stay .pp small{display:block;font-family:var(--body);font-size:11px;font-weight:400;color:var(--muted);white-space:normal;max-width:96px;margin-left:auto;line-height:1.25}
+.stay .tags{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12px;color:var(--muted)}
+.stay .row2{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.stay .svote{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stay .svote button{border:0;background:var(--bg);height:32px;min-width:38px;font-weight:600;color:var(--muted)}
+.stay .svote button+button{border-left:1px solid var(--line)}
+.stay .svote button[aria-pressed="true"]{background:var(--good);color:var(--surface)}
+.stay .svote button.no[aria-pressed="true"]{background:var(--ink)}
+.stay .who{font-size:12px;color:var(--muted)}
+.addstay{display:grid;gap:8px;border:1px dashed var(--line);border-radius:8px;padding:12px}
+.addstay .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.addstay .grid2{grid-template-columns:1fr}}
+.addstay input,.addstay select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.addstay label{font-size:12px;color:var(--muted);display:grid;gap:3px}
+.addstay .chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink)}
+.addstay .chk input{width:auto}
+
 /* Antworten statt Regler */
 .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px}
 @media (max-width:760px){.answers{grid-template-columns:1fr}}
@@ -425,13 +469,14 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     <div style="display:grid;gap:16px">
       <div class="guide-grid">
         <div>
-          <h3>In fünf Schritten</h3>
+          <h3>In sechs Schritten</h3>
           <ol>
             <li><b>Namen wählen:</b> Oben auf deinen Namen tippen. Das Gerät merkt sich das.</li>
             <li><b>Gewichten:</b> Unter „Was ist euch wichtig?“ beantwortet jeder 7 kurze Fragen zu Schnee, Größe, Preis, Fahrzeit, Freeride, Après-Ski und Unterkunft. Der Schnitt aller Antworten ist automatisch die Gewichtung und bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Einzelne Antworten kannst du dort jederzeit ändern.</li>
             <li><b>Swipen:</b> Jedes Gebiet bewerten: rechts = gerne, oben = Top-Favorit, links = lieber nicht. „Schon dort gewesen“ streicht ein Gebiet für alle.</li>
             <li><b>Stimmen:</b> Dort seht ihr Matches (alle vier dafür), Fast-Matches und Gebiete mit einem Nein.</li>
             <li><b>Rangliste &amp; Karte:</b> Filter gelten nur für dich. „+“ öffnet Details, Anreise pro Person und „Streichen“.</li>
+            <li><b>Planen:</b> Für eure Top 5 gibt es Wohnorte mit Lift- oder Skibus-Anbindung, Suchlinks zu Booking und Airbnb für euren Zeitraum und eine gemeinsame Liste eurer Apartment-Favoriten mit Preis pro Person und Nacht.</li>
           </ol>
         </div>
         <div>
@@ -484,6 +529,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     <button type="button" role="tab" data-tab="list" id="t-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>Rangliste</button>
     <button type="button" role="tab" data-tab="map" id="t-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 19l6-14 4 8 3-4 5 10z"/></svg>Karte</button>
     <button type="button" role="tab" data-tab="votes" id="t-votes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>Stimmen</button>
+    <button type="button" role="tab" data-tab="plan" id="t-plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>Planen</button>
   </nav>
 
   <!-- SWIPEN -->
@@ -582,6 +628,23 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
       </div>
       <p class="hint">Tippe auf einen Kreis, um das Gebiet in der Rangliste zu öffnen. Die Filter aus der Rangliste gelten auch hier.</p>
     </div>
+  </section>
+
+  <!-- PLANEN -->
+  <section class="tabpane" id="p-plan" role="tabpanel" aria-labelledby="t-plan" hidden>
+    <div class="panel">
+      <div class="panel-head"><h2>Unterkunft planen</h2><span class="hint">Apartment für 4 · Sauna gesetzt</span></div>
+      <div class="tripdates">
+        <label class="field" for="tripIn">Anreise <input type="date" id="tripIn"></label>
+        <label class="field" for="tripOut">Abreise <input type="date" id="tripOut"></label>
+        <span class="hint" id="tripNights"></span>
+      </div>
+      <p class="hint" style="margin:0">Der Zeitraum gilt für alle und steckt in den Suchlinks. Ostern ist am 28. März 2027, die Wochen davor und danach sind Ferienzeit und teurer.</p>
+      <div class="panel-head" style="margin-top:4px"><span class="hint">Welche fünf Gebiete?</span>
+        <div class="seg" role="group" aria-label="Top 5 nach"><button type="button" data-planby="votes">Nach Stimmen</button><button type="button" data-planby="score">Nach Punkten</button></div>
+      </div>
+    </div>
+    <div id="planList" class="plan-list"></div>
   </section>
 
   <!-- STIMMEN -->
@@ -777,7 +840,7 @@ const CRIT = [
   {k:"free",label:"Freeride"},{k:"apres",label:"Après-Ski"},{k:"lodge",label:"Günstige Unterkunft"}];
 const DEF = {weights:{snow:5,size:3,price:3,drive:4,free:3,apres:2,lodge:2},route:"auto",detour:60,pickup:15,koeln:75};
 const VOTE = {2:"♥♥",1:"♥","-1":"✕"};
-const TABS = ["swipe","list","map","votes"];
+const TABS = ["swipe","list","map","votes","plan"];
 
 const $ = s => document.querySelector(s);
 const fmt = m => Math.floor(m/60)+":"+String(Math.round(m%60)).padStart(2,"0")+" h";
@@ -865,6 +928,7 @@ function render(){
   if (ui.tab === "list") renderList(all, list);
   if (ui.tab === "map") renderMap(all, new Set(list.map(r=>r.id)));
   if (ui.tab === "votes") renderVotes(all);
+  if (ui.tab === "plan") renderPlan(all);
 }
 
 function filtered(all){
@@ -1216,7 +1280,7 @@ async function merge(path, patch){
   const flat = {};
   const walk = (o, pre) => { for (const [k,v] of Object.entries(o)) { if (v && typeof v === "object" && !Array.isArray(v) && pre.split("/").length < 3) walk(v, pre+k+"/"); else flat[pre+k] = (v === 0 ? null : v); } };
   try {
-    if (path === "settings/main"){ const {answers, ...rest} = patch; await db.ref(ROOT + "/settings").update(rest); }
+    if (path === "settings/main"){ const {answers, trip, ...rest} = patch; await db.ref(ROOT + "/settings").update(rest); }
     else { walk(patch, ""); await db.ref(ROOT + "/" + path).update(flat); }
     return true;
   } catch(e){ toast("Speichern hat nicht geklappt. Bist du online?"); return false; }
@@ -1396,6 +1460,121 @@ async function setAnswer(k, v){
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-ans]"); if (b) setAnswer(b.dataset.ans, +b.dataset.av); });
 
+// ---------- Planen: Unterkünfte für die Top 5 ----------
+// Wohnorte je Gebiet: id → [{name, access:"lift"|"bus"|"car", price:1-3, note}]
+const BASES = {"arlberg": [{"name": "St. Anton am Arlberg", "access": "lift", "price": 3, "note": "Galzig- & Nassereinbahn im Ort, Après-Zentrum"}, {"name": "Stuben am Arlberg", "access": "lift", "price": 2, "note": "Albonabahn im Dorf, ruhig, Anschluss an St. Anton und Lech/Zürs"}, {"name": "Pettneu am Arlberg", "access": "bus", "price": 1, "note": "Skibus ca. 10 Min nach St. Anton, deutlich günstiger"}], "ischgl": [{"name": "Ischgl", "access": "lift", "price": 3, "note": "Silvretta- & Pardatschgratbahn im Ort, Party-Hochburg"}, {"name": "Samnaun", "access": "lift", "price": 2, "note": "Schweizer Seite, Doppelstockbahn in Ravaisch, zollfreies Einkaufen"}, {"name": "Mathon", "access": "bus", "price": 1, "note": "Skibus wenige Min nach Ischgl, ruhig und günstiger"}], "sfl": [{"name": "Serfaus", "access": "lift", "price": 3, "note": "Autofreies Dorf, Dorfbahn (U-Bahn) zur Komperdellbahn"}, {"name": "Fiss", "access": "lift", "price": 2, "note": "Schönjochbahn im Ort, familiär, sonnig"}, {"name": "Ladis", "access": "lift", "price": 1, "note": "Sonnenbahn Ladis-Fiss ins Gebiet, ruhiger und günstiger"}], "soelden": [{"name": "Sölden", "access": "lift", "price": 3, "note": "Gaislachkogl- & Giggijochbahn im Ort, lebhaftes Après"}, {"name": "Zwieselstein", "access": "bus", "price": 1, "note": "Skibus wenige Min nach Sölden, ruhig und günstiger"}, {"name": "Längenfeld", "access": "bus", "price": 1, "note": "Ötztaler Skibus ca. 20 Min nach Sölden, Therme Aqua Dome"}], "obergurgl": [{"name": "Obergurgl", "access": "lift", "price": 3, "note": "Festkogl- & Steinmannbahn im Ort, schneesicher, ruhig"}, {"name": "Untergurgl", "access": "lift", "price": 2, "note": "Hochgurglbahn an der Talstation, Skibus nach Obergurgl"}, {"name": "Zwieselstein", "access": "bus", "price": 1, "note": "Skibus ca. 10 Min nach Ober-/Hochgurgl, deutlich günstiger"}], "montafon": [{"name": "Schruns", "access": "lift", "price": 2, "note": "Hochjochbahn im Ort, Hauptort mit Infrastruktur"}, {"name": "St. Gallenkirch", "access": "lift", "price": 2, "note": "Valisera- & Garfreschabahn, mitten im Skigebiet"}, {"name": "Tschagguns", "access": "bus", "price": 1, "note": "Skibus wenige Min nach Schruns, etwas günstiger"}], "damuels": [{"name": "Damüls", "access": "lift", "price": 3, "note": "Lifte direkt im Ort, schneereichstes Dorf, ski-in/out"}, {"name": "Mellau", "access": "lift", "price": 2, "note": "Mellaubahn im Ort, Bregenzerwald-Dorf mit Charme"}, {"name": "Bezau", "access": "bus", "price": 1, "note": "Skibus ca. 10 Min nach Mellau, Bregenzerwald-Hauptort"}], "skiwelt": [{"name": "Ellmau", "access": "lift", "price": 3, "note": "Hartkaiserbahn im Ort, zentral in der SkiWelt"}, {"name": "Söll", "access": "lift", "price": 2, "note": "Gondel im Ort, lebhaftes Après, Skibus im Dorf"}, {"name": "Brixen im Thale", "access": "lift", "price": 1, "note": "Gondel im Ort auf Brixentaler Seite, günstiger"}], "kitz": [{"name": "Kitzbühel", "access": "lift", "price": 3, "note": "Hahnenkammbahn im Zentrum, Flair und Après"}, {"name": "Kirchberg in Tirol", "access": "lift", "price": 2, "note": "Fleckalmbahn & Maierl, günstiger, gute Anbindung"}, {"name": "Jochberg", "access": "lift", "price": 1, "note": "Wagstättbahn am Ort, ruhig, ins Gebiet ohne Auto"}], "saalbach": [{"name": "Saalbach", "access": "lift", "price": 3, "note": "Mehrere Bahnen im autofreien Zentrum, Après-Hochburg"}, {"name": "Leogang", "access": "lift", "price": 2, "note": "Asitz- & Steinbergbahn, ruhiger Einstieg in den Skicircus"}, {"name": "Viehhofen", "access": "bus", "price": 1, "note": "Skibus ca. 10 Min nach Saalbach, deutlich günstiger"}], "zellkaprun": [{"name": "Zell am See", "access": "lift", "price": 2, "note": "CityXpress im Zentrum zur Schmittenhöhe, Seeort"}, {"name": "Kaprun", "access": "lift", "price": 2, "note": "Maiskogelbahn im Ort, Gletscher per Skibus"}, {"name": "Schüttdorf", "access": "lift", "price": 1, "note": "Areitbahn im Ortsteil von Zell am See, günstiger"}], "mayrhofen": [{"name": "Mayrhofen", "access": "lift", "price": 3, "note": "Penken- & Ahornbahn im Ort, Après-Zentrum"}, {"name": "Finkenberg", "access": "lift", "price": 2, "note": "Finkenberger Almbahn zum Penken, ruhiger"}, {"name": "Hippach", "access": "bus", "price": 1, "note": "Skibus zur Horbergbahn Schwendau & nach Mayrhofen, günstiger"}], "zarena": [{"name": "Gerlos", "access": "lift", "price": 2, "note": "Isskogelbahn im Ort, zentral in der Zillertal Arena"}, {"name": "Königsleiten", "access": "lift", "price": 2, "note": "Höchster Ort, ski-in/out, schneesicher"}, {"name": "Zell am Ziller", "access": "lift", "price": 1, "note": "Rosenalmbahn nahe Zentrum, Talort mit Infrastruktur"}], "alpbach": [{"name": "Inneralpbach", "access": "lift", "price": 3, "note": "Talstation Wiedersbergerhorn im Ort, Bergdorf-Flair"}, {"name": "Auffach", "access": "lift", "price": 2, "note": "Schatzbergbahn im Ort, Verbindung ins Alpbachtal"}, {"name": "Reith im Alpbachtal", "access": "lift", "price": 1, "note": "Reitherkogelbahn ins Gebiet, günstig"}], "schladming": [{"name": "Schladming", "access": "lift", "price": 3, "note": "Planai-Bahn im Zentrum, Après & Altstadt"}, {"name": "Haus im Ennstal", "access": "lift", "price": 2, "note": "Hauser Kaibling-Bahn im Ort, ruhiger"}, {"name": "Ramsau am Dachstein", "access": "bus", "price": 1, "note": "Skibus ca. 15 Min nach Schladming, günstiger, Langlauf"}], "snowspace": [{"name": "Flachau", "access": "lift", "price": 2, "note": "Achterjet & Starjet im Ort, zentral im Gebiet"}, {"name": "Wagrain", "access": "lift", "price": 2, "note": "Flying Mozart im Ort, Verbindung Flachau/Alpendorf"}, {"name": "St. Johann im Pongau", "access": "bus", "price": 1, "note": "Skibus zur Gondel Alpendorf, Stadt mit Infrastruktur"}], "obertauern": [{"name": "Obertauern", "access": "lift", "price": 3, "note": "Ski-in/out rund um den Ort, sehr schneesicher"}, {"name": "Tweng", "access": "bus", "price": 1, "note": "Skibus ca. 10 Min nach Obertauern, deutlich günstiger"}, {"name": "Untertauern", "access": "bus", "price": 1, "note": "Skibus ca. 15 Min nach Obertauern, ruhig und günstig"}], "gastein": [{"name": "Bad Hofgastein", "access": "lift", "price": 2, "note": "Schlossalmbahn im Ort, große Therme"}, {"name": "Bad Gastein", "access": "lift", "price": 2, "note": "Stubnerkogelbahn im Ort, Belle-Époque, Felsentherme"}, {"name": "Dorfgastein", "access": "lift", "price": 1, "note": "Fulseckbahn im Ort, Verbund nach Großarl, günstiger"}], "livigno": [{"name": "Livigno", "access": "lift", "price": 2, "note": "Lifte in beide Gebiete vom Ort, Gratis-Skibus, zollfrei"}], "laax": [{"name": "Laax", "access": "lift", "price": 3, "note": "Laax Murschetg: Talstation, Rocksresort und Apartments direkt an der Piste"}, {"name": "Flims", "access": "lift", "price": 2, "note": "Flims Dorf mit Gondel; Gratis-Skibus zwischen Flims, Laax und Falera"}, {"name": "Falera", "access": "lift", "price": 1, "note": "Ruhiges Dorf mit eigener Gondel ins Gebiet, eher günstigere Apartments"}], "davos": [{"name": "Davos Platz", "access": "lift", "price": 3, "note": "Jakobshorn im Ort; Gästekarte: Bus/Bahn gratis zur Parsenn"}, {"name": "Klosters", "access": "lift", "price": 2, "note": "Klosters Platz: Gotschnabahn zur Parsenn, ruhiger und gemütlicher als Davos"}, {"name": "Davos Glaris", "access": "bus", "price": 1, "note": "Rinerhorn vor Ort; Bahn/Bus mit Gästekarte gratis zu den großen Gebieten"}], "arosa": [{"name": "Arosa", "access": "lift", "price": 3, "note": "Autofreier Ort mit Ski-in/Ski-out, Bergbahn direkt im Ort"}, {"name": "Lenzerheide", "access": "lift", "price": 2, "note": "Mehrere Talstationen, Ortsbus gratis; Gondel Urdenbahn nach Arosa"}, {"name": "Churwalden", "access": "lift", "price": 1, "note": "Gondel nach Heidbüel ins Gebiet, günstigere Unterkünfte"}], "stmoritz": [{"name": "St. Moritz", "access": "lift", "price": 3, "note": "Standseilbahn Corviglia im Ort, Engadin-Busse gratis mit Skipass"}, {"name": "Celerina", "access": "lift", "price": 2, "note": "Gondel Marguns, Abfahrt bis ins Dorf, ruhiger als St. Moritz"}, {"name": "Samedan", "access": "bus", "price": 1, "note": "Günstigere Basis; Engadin-Bus zu Corviglia, Corvatsch, Diavolezza"}], "andermatt": [{"name": "Andermatt", "access": "lift", "price": 3, "note": "Gütsch-Gondel am Bahnhof, Gemsstock im Ort; neue Apartments mit Spa"}, {"name": "Sedrun", "access": "lift", "price": 1, "note": "Lifte direkt im Dorf, deutlich günstiger, Verbindung via Oberalp"}], "zermatt": [{"name": "Zermatt", "access": "lift", "price": 3, "note": "Autofrei, drei Talstationen, Elektro-Skibus gratis"}, {"name": "Breuil-Cervinia", "access": "lift", "price": 2, "note": "Italienische Seite, Ski-in/Ski-out möglich, günstiger als Zermatt"}, {"name": "Täsch", "access": "bus", "price": 1, "note": "Shuttlezug alle 20 Min. nach Zermatt (12 Min.), viel günstiger"}], "verbier": [{"name": "Verbier", "access": "lift", "price": 3, "note": "Medran-Talstation im Ort, Chalets mit Sauna, Skibus gratis"}, {"name": "Le Châble", "access": "lift", "price": 1, "note": "Gondel direkt nach Verbier, Bahnanschluss, deutlich günstiger"}, {"name": "Nendaz", "access": "lift", "price": 2, "note": "Haute-Nendaz: Gondel Tracouet, Anbindung an 4 Vallées via Siviez"}], "jungfrau": [{"name": "Grindelwald", "access": "lift", "price": 2, "note": "Eiger Express und First im Ort, Skibus im Dorf"}, {"name": "Wengen", "access": "lift", "price": 3, "note": "Autofrei, Männlichenbahn und Zahnradbahn im Ort, ruhig"}, {"name": "Lauterbrunnen", "access": "bus", "price": 1, "note": "Zahnradbahn nach Wengen/Kleine Scheidegg, günstige Apartments"}], "saasfee": [{"name": "Saas-Fee", "access": "lift", "price": 3, "note": "Autofreies Gletscherdorf, Talstationen zu Fuß erreichbar"}, {"name": "Saas-Grund", "access": "bus", "price": 1, "note": "Eigene Hohsaas-Bahn, gratis Talbus nach Saas-Fee, günstiger"}], "gardena": [{"name": "Wolkenstein", "access": "lift", "price": 3, "note": "Selva: Sella-Ronda-Zugang, Lifte im Ort, viele Apartments"}, {"name": "St. Christina", "access": "lift", "price": 2, "note": "Zentral zwischen Selva und Ortisei, Lifte und Skibus im Ort"}, {"name": "St. Ulrich", "access": "lift", "price": 2, "note": "Ortisei: Seceda- und Seiser-Alm-Bahn im Ort, größter Ort im Tal"}], "altabadia": [{"name": "Corvara", "access": "lift", "price": 3, "note": "Herz der Sella Ronda, Lifte direkt im Ort"}, {"name": "La Villa", "access": "lift", "price": 2, "note": "Gran Risa im Ort, Verbindung nach Corvara und San Cassiano"}, {"name": "Badia", "access": "lift", "price": 1, "note": "Pedraces: Sessellift ins Gebiet, ruhiger und günstiger"}], "kronplatz": [{"name": "Reischach", "access": "lift", "price": 3, "note": "Ortsteil von Bruneck, Kronplatzbahn direkt erreichbar"}, {"name": "St. Vigil in Enneberg", "access": "lift", "price": 2, "note": "Piculin- und Miara-Lifte am Ort, Dolomitenflair"}, {"name": "Olang", "access": "lift", "price": 1, "note": "Gondeln ab Olang und Gassl, oft günstiger; Gästepass für Busse gratis"}], "dreizinnen": [{"name": "Sexten", "access": "lift", "price": 3, "note": "Moos/Sexten: Rotwand- und Helmbahn nah; Busse mit Gästepass gratis"}, {"name": "Innichen", "access": "bus", "price": 2, "note": "Haunold im Ort; Bus/Bahn mit Gästepass zur Helmbahn Vierschach"}, {"name": "Toblach", "access": "bus", "price": 1, "note": "Günstigere Basis mit Langlauf, Skibus/Zug mit Gästepass gratis"}], "campiglio": [{"name": "Madonna di Campiglio", "access": "lift", "price": 3, "note": "Mondäner Ort, Lifte im Zentrum, Skibus gratis"}, {"name": "Pinzolo", "access": "lift", "price": 2, "note": "Gondel direkt ins Skigebiet, angebunden an Campiglio"}, {"name": "Marilleva", "access": "lift", "price": 1, "note": "Marilleva 1400: Ski-in/Ski-out-Apartments, Gebiet Folgarida-Marilleva"}], "3v": [{"name": "Méribel", "access": "lift", "price": 3, "note": "Zentral in den 3 Vallées, viele Chalets mit Sauna"}, {"name": "Les Menuires", "access": "lift", "price": 2, "note": "Ski-in/Ski-out-Station, günstiger, nah an Val Thorens"}, {"name": "Saint-Martin-de-Belleville", "access": "lift", "price": 1, "note": "Charmantes Dorf mit Liftzugang nach Les Menuires/Méribel"}], "killy": [{"name": "Val d'Isère", "access": "lift", "price": 3, "note": "Lebendiger Ort, Lifte im Zentrum, Gratis-Skibus durchs Tal"}, {"name": "Tignes Val Claret", "access": "lift", "price": 2, "note": "Ski-in/Ski-out auf 2100 m, schneesicher, Gletschernähe"}, {"name": "Tignes les Brévières", "access": "lift", "price": 1, "note": "Kleines Dorf auf 1550 m mit Lift ins Gebiet, günstiger"}], "paradiski": [{"name": "Arc 1800", "access": "lift", "price": 2, "note": "Les Arcs: Ski-in/Ski-out, Vanoise Express nach La Plagne gut erreichbar"}, {"name": "Belle Plagne", "access": "lift", "price": 3, "note": "La Plagne: autofreie Ski-in/Ski-out-Station im Savoyer Stil"}, {"name": "Peisey-Vallandry", "access": "lift", "price": 1, "note": "Günstiger, direkt am Vanoise Express zwischen den Gebieten"}], "pds": [{"name": "Avoriaz", "access": "lift", "price": 3, "note": "Autofreie Ski-in/Ski-out-Station im Zentrum der Portes du Soleil"}, {"name": "Morzine", "access": "lift", "price": 2, "note": "Pleney-Gondel im Ort, Gratis-Skibus zu Prodains/Avoriaz"}, {"name": "Châtel", "access": "lift", "price": 1, "note": "Lifte im Ort, Gratis-Skibus, oft günstiger als Morzine"}], "adh": [{"name": "Alpe d'Huez", "access": "lift", "price": 3, "note": "Sonnige Station mit Ski-in/Ski-out, Gratis-Ortsbus"}, {"name": "Oz-en-Oisans", "access": "lift", "price": 2, "note": "Oz 3300: Ski-in/Ski-out, Gondel direkt Richtung Alpe d'Huez"}, {"name": "Vaujany", "access": "lift", "price": 1, "note": "Dorf mit großer Seilbahn ins Gebiet, ruhig und günstiger"}]};
+const ACC = {skiin:"Ski-in/Ski-out", walk:"Lift zu Fuß", lift:"Lift im Ort", bus:"Skibus", car:"Auto nötig"};
+let stays = {};     // area → {stayId: {...}}
+let addingFor = null;
+const TRIP_DEF = {checkin:"2027-03-06", checkout:"2027-03-13"};
+const tripDates = () => ({...TRIP_DEF, ...(settings.trip || {})});
+const nights = () => { const t = tripDates(); const d = (new Date(t.checkout) - new Date(t.checkin)) / 864e5; return d > 0 && d < 60 ? Math.round(d) : 7; };
+const fmtDate = s => new Date(s+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short", day:"numeric", month:"numeric"});
+function searchLinks(place){
+  const t = tripDates(), q = encodeURIComponent(place);
+  return {
+    booking: `https://www.booking.com/searchresults.de.html?ss=${q}&checkin=${t.checkin}&checkout=${t.checkout}&group_adults=4&no_rooms=1&group_children=0&nflt=ht_id%3D201`,
+    airbnb: `https://www.airbnb.de/s/${q}/homes?checkin=${t.checkin}&checkout=${t.checkout}&adults=4&min_bedrooms=2`,
+    maps: `https://www.google.com/maps/search/${encodeURIComponent(place + " Talstation")}`
+  };
+}
+function planTop(all){
+  const live = all.filter(r => !r.excluded);
+  const byVotes = ui.planBy !== "score" && live.some(r => r.cnt);
+  return live.slice().sort((a,b) => byVotes ? (b.sum - a.sum || b.score - a.score) : (b.score - a.score)).slice(0,5);
+}
+function stayList(id){
+  return Object.entries(stays[id] || {}).map(([k,s]) => ({...s, key:k})).filter(s => s && s.title)
+    .map(s => { const v = s.votes || {}; s.vsum = Object.values(v).reduce((a,b)=>a+(+b||0),0); s.pp = s.price ? s.price / 4 / nights() : null; return s; })
+    .sort((a,b) => b.vsum - a.vsum || (a.pp ?? 1e9) - (b.pp ?? 1e9));
+}
+function renderPlan(all){
+  const t = tripDates();
+  if (document.activeElement !== $("#tripIn")) $("#tripIn").value = t.checkin;
+  if (document.activeElement !== $("#tripOut")) $("#tripOut").value = t.checkout;
+  $("#tripNights").textContent = `${fmtDate(t.checkin)} bis ${fmtDate(t.checkout)} · ${nights()} Nächte · 4 Personen`;
+  document.querySelectorAll("[data-planby]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.planby === (ui.planBy || "votes"))));
+  const top = planTop(all);
+  $("#planList").innerHTML = top.map((r, i) => {
+    const bases = BASES[r.id] || [{name: r.vname || r.name, access:"lift", price:2, note:"Hauptort des Gebiets"}];
+    const sl = stayList(r.id);
+    const voters = PEOPLE.filter(p => r.votes[p.n]).map(p => `${p.n} ${VOTE[r.votes[p.n]]}`).join(" · ");
+    return `<article class="pcard2" id="plan-${r.id}">
+      <header><div><div class="eyebrow">#${i+1} ${ui.planBy === "score" ? "nach Punkten" : "nach Stimmen"}</div><h3>${esc(r.name)}</h3><div class="meta">${esc(r.sub)} · ${Math.round(r.score)} Pkt.${voters ? " · " + voters : ""}</div></div>${pisteBtn(r)}</header>
+      <div class="bases"><h4>Wo wohnen?</h4>${bases.map(b => { const l = searchLinks(b.name); return `<div class="base">
+        <b>${esc(b.name)}</b><span class="acc ${b.access}">${ACC[b.access] || b.access}</span>
+        ${b.note ? `<span class="note">${esc(b.note)} · Preisniveau ${"€".repeat(b.price||2)}</span>` : ""}
+        <div class="links"><a href="${l.booking}" target="_blank" rel="noopener">Booking ↗</a><a href="${l.airbnb}" target="_blank" rel="noopener">Airbnb ↗</a><a href="${l.maps}" target="_blank" rel="noopener">Karte ↗</a></div>
+      </div>`; }).join("")}
+      <p class="hint" style="margin:0">Die Links suchen Apartments für 4 Personen in eurem Zeitraum. Den Filter „Sauna“ bitte auf der Seite selbst anhaken.</p></div>
+      <div class="stays"><h4>Eure Unterkünfte (${sl.length})</h4>
+        ${sl.length ? sl.map((s, j) => `<div class="stay ${j===0 && s.vsum>0 ? "top":""}">
+          <div><a class="t" href="${esc(s.url||"#")}" target="_blank" rel="noopener">${esc(s.title)} ↗</a>
+            <div class="tags">${s.sauna ? '<span class="acc walk">Sauna</span>' : '<span class="acc car">ohne Sauna</span>'}<span class="acc ${s.access||"bus"}">${ACC[s.access]||""}${s.dist ? " · " + s.dist + " m" : ""}</span>${s.note ? `<span>${esc(s.note)}</span>` : ""}</div></div>
+          <div class="pp">${s.pp ? Math.round(s.pp) + " €" : "–"}<small>${s.price ? "pro Person/Nacht · " + Math.round(s.price).toLocaleString("de-DE") + " € gesamt" : "Preis fehlt"}</small></div>
+          <div class="row2"><span class="who">von ${esc(s.by||"?")}${Object.keys(s.votes||{}).length ? " · " + Object.entries(s.votes).map(([n,v]) => n + (v>0?" 👍":" 👎")).join(", ") : ""}</span>
+            <span style="display:flex;gap:6px;align-items:center"><span class="svote"><button type="button" data-svote="1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===1}" aria-label="Gefällt mir">👍</button><button type="button" class="no" data-svote="-1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===-1}" aria-label="Gefällt mir nicht">👎</button></span>
+            ${s.by === ui.me ? `<button class="btn" type="button" data-sdel="${s.key}" data-area="${r.id}" style="padding:5px 9px">Löschen</button>` : ""}</span></div>
+        </div>`).join("") : `<p class="hint" style="margin:0">Noch nichts eingetragen. Findet ihr bei Booking oder Airbnb etwas Passendes, tragt es hier ein, damit alle es sehen und abstimmen können.</p>`}
+        ${addingFor === r.id ? `<form class="addstay" data-addfor="${r.id}">
+          <label>Link zur Unterkunft<input name="url" type="url" required placeholder="https://www.booking.com/..." maxlength="600"></label>
+          <label>Name<input name="title" required maxlength="120" placeholder="z. B. Apartment Alpenblick, 2 Schlafzimmer"></label>
+          <div class="grid2">
+            <label>Gesamtpreis für alle (€)<input name="price" type="number" min="0" max="20000" step="1" placeholder="z. B. 1800"></label>
+            <label>Lage zum Lift<select name="access"><option value="skiin">Ski-in/Ski-out</option><option value="walk" selected>Lift zu Fuß</option><option value="bus">Skibus</option><option value="car">Auto nötig</option></select></label>
+            <label>Entfernung zum Lift (m)<input name="dist" type="number" min="0" max="50000" step="10" placeholder="z. B. 300"></label>
+            <label>Notiz<input name="note" maxlength="300" placeholder="z. B. Skikeller, Parkplatz"></label>
+          </div>
+          <label class="chk"><input type="checkbox" name="sauna" checked> Sauna vorhanden</label>
+          <div style="display:flex;gap:8px"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" data-addcancel>Abbrechen</button></div>
+        </form>` : `<button class="btn" type="button" data-addstay="${r.id}" style="justify-self:start">+ Unterkunft eintragen</button>`}
+      </div>
+    </article>`;
+  }).join("") || `<div class="empty">Noch keine Gebiete. Swipt erst ein paar Gebiete oder wählt „Nach Punkten“.</div>`;
+}
+async function stayWrite(area, key, val){
+  if (!db){
+    stays[area] = stays[area] || {};
+    if (val === null) delete stays[area][key];
+    else { const s = stays[area][key] = {...(stays[area][key]||{})}; for (const [k,v] of Object.entries(val)){ const [a,b] = k.split("/"); if (b){ s[a] = {...(s[a]||{})}; if (v === null) delete s[a][b]; else s[a][b] = v; } else s[k] = v; } }
+    render(); return;
+  }
+  try {
+    const ref = db.ref(ROOT + "/stays/" + area + "/" + key);
+    if (val === null) await ref.remove(); else await ref.update(val);
+  } catch(e){ toast("Speichern ging nicht. Wahrscheinlich müssen die Datenbank-Regeln noch aktualisiert werden."); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.planby){ ui.planBy = b.dataset.planby; saveUi(); render(); }
+  else if (b.dataset.addstay){ if (!ui.me){ toast("Wähle zuerst oben, wer du bist."); return; } addingFor = b.dataset.addstay; render(); document.querySelector(`[data-addfor="${addingFor}"] input`)?.focus(); }
+  else if (b.hasAttribute("data-addcancel")){ addingFor = null; render(); }
+  else if (b.dataset.svote){ if (!ui.me){ toast("Wähle zuerst oben, wer du bist."); return; }
+    const s = (stays[b.dataset.area]||{})[b.dataset.key] || {}; const v = +b.dataset.svote; const cur = (s.votes||{})[ui.me];
+    stayWrite(b.dataset.area, b.dataset.key, {["votes/" + ui.me]: cur === v ? null : v}); }
+  else if (b.dataset.sdel){ stayWrite(b.dataset.area, b.dataset.sdel, null); }
+});
+document.addEventListener("submit", e => {
+  const f = e.target.closest("[data-addfor]"); if (!f) return;
+  e.preventDefault();
+  const fd = new FormData(f), area = f.dataset.addfor;
+  const key = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const val = {url: String(fd.get("url")).trim(), title: String(fd.get("title")).trim(), access: fd.get("access"), sauna: !!fd.get("sauna"), by: ui.me, ts: Date.now()};
+  const price = parseFloat(fd.get("price")); if (price > 0) val.price = Math.round(price);
+  const dist = parseFloat(fd.get("dist")); if (dist >= 0 && fd.get("dist") !== "") val.dist = Math.round(dist);
+  const note = String(fd.get("note")||"").trim(); if (note) val.note = note;
+  if (!/^https?:\/\//.test(val.url)){ toast("Bitte einen Link mit https:// eintragen."); return; }
+  addingFor = null;
+  stayWrite(area, key, val); toast("Unterkunft gespeichert.");
+});
+document.addEventListener("change", e => {
+  if (e.target.id !== "tripIn" && e.target.id !== "tripOut") return;
+  const t = {...tripDates(), [e.target.id === "tripIn" ? "checkin" : "checkout"]: e.target.value};
+  if (!t.checkin || !t.checkout || t.checkout <= t.checkin){ toast("Die Abreise muss nach der Anreise liegen."); render(); return; }
+  settings.trip = t; render();
+  if (db) db.ref(ROOT + "/settings/trip").set(t).catch(() => toast("Speichern hat nicht geklappt."));
+});
+
 // ---------- Intro beim ersten Öffnen ----------
 const MTN = (fill2) => `<svg viewBox="0 0 420 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0 150 L0 95 L70 70 L140 98 L230 40 L300 75 L360 55 L420 80 L420 150Z" style="fill:var(--accent);opacity:.3"/><path d="M0 150 L0 120 L90 92 L170 112 L260 62 L330 96 L420 84 L420 150Z" style="fill:var(--accent)"/><path d="M232 62 L260 62 L246 52Z" style="fill:var(--surface);opacity:.9"/>${fill2||""}</svg>`;
 const INTRO = [
@@ -1489,6 +1668,7 @@ render();
     }
   } catch(e){}
   db.ref(ROOT + "/marks").on("value", snap => { marks = snap.val() || {}; render(); }, () => setStatus("local","Keine Verbindung zur Datenbank"));
+  db.ref(ROOT + "/stays").on("value", snap => { stays = snap.val() || {}; if (ui.tab === "plan" && !addingFor) render(); }, () => {});
   db.ref(ROOT + "/settings").on("value", snap => {
     if (editingSettings) return;
     const d = snap.val() || {};
