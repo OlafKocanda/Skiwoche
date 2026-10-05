@@ -54,9 +54,10 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--surfa
 @media (max-width:700px){
   :root{--navh:64px}
   nav.tabs{position:fixed;left:0;right:0;bottom:0;top:auto;border-radius:0;border-width:1px 0 0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));gap:2px}
-  nav.tabs button{flex-direction:column;gap:1px;font-size:13px;padding:5px 2px}
+  nav.tabs button{flex-direction:column;gap:1px;font-size:12px;padding:5px 1px;min-width:0;flex:1 1 0}
   nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
-  .toast{bottom:calc(var(--navh) + 14px + env(safe-area-inset-bottom,0px))!important}
+  .toast{display:flex;align-items:center;gap:12px;
+bottom:calc(var(--navh) + 14px + env(safe-area-inset-bottom,0px))!important}
 }
 
 /* Wer bist du */
@@ -215,6 +216,8 @@ details.fold[open]>summary{margin-bottom:12px}
 .atext{font-size:12px;color:var(--ink)}
 .others-a{font-size:11px;color:var(--muted)}
 
+#toastBtn{border:0;background:var(--surface);color:var(--ink);border-radius:6px;padding:5px 10px;font-weight:700;font-size:13px;white-space:nowrap}
+
 /* Fragebogen */
 .quizbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
@@ -232,7 +235,7 @@ details.fold[open]>summary{margin-bottom:12px}
 .qres .na{color:var(--muted)}
 
 /* Swipen */
-.swipe{display:grid;gap:14px;justify-items:center}
+.swipe{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;justify-items:center}
 .swipe-top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .progress{flex:1;min-width:140px}
 .progress .bar{height:6px}
@@ -271,6 +274,14 @@ details.fold[open]>summary{margin-bottom:12px}
 .fact > span:not(.dots):not(.eur){display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .fact .dots{display:flex;margin-top:4px}
 .fact b{font-family:var(--display);font-size:19px;font-weight:600}
+.rel{display:inline-block;font-style:normal;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:4px;padding:1px 5px;margin-top:3px}
+.rel.good{background:var(--good-soft);color:var(--good)}
+.rel.bad{background:var(--signal-soft);color:var(--signal)}
+.rel.mid{background:var(--sunk);color:var(--muted)}
+.fact .rel{display:table}
+.drive3{display:flex;flex-wrap:wrap;gap:4px 14px}
+.drive3 div{display:grid}
+.drive3 small{display:block}
 .fact small{display:block;color:var(--muted);font-size:12px;line-height:1.25}
 .card .note{font-size:14px;margin:0}
 .others{display:flex;flex-wrap:wrap;gap:4px}
@@ -278,7 +289,10 @@ details.fold[open]>summary{margin-bottom:12px}
 .stamp.yes{left:20px;color:var(--good);transform:rotate(-12deg)}
 .stamp.no{right:20px;color:var(--signal);transform:rotate(12deg)}
 .stamp.top2{left:50%;top:60px;transform:translateX(-50%);color:var(--signal)}
-.swipe-btns{display:flex;gap:14px;align-items:center;justify-content:center}
+.swipe-btns{display:flex;gap:8px;align-items:flex-start;justify-content:center;max-width:100%}
+.sbw{display:grid;justify-items:center;gap:4px;min-width:0}
+.sbw span{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap}
+.sbw .sb.small{margin-top:7px}
 .sb{width:58px;height:58px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:22px;display:grid;place-items:center;box-shadow:0 3px 10px rgb(10 30 45 / .1);font-weight:700}
 .sb.small{width:44px;height:44px;font-size:16px}
 .sb.no{color:var(--ink)} .sb.yes{color:var(--good)} .sb.top2{color:var(--signal)}
@@ -485,7 +499,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
             <dt><span class="v v2">♥♥</span></dt><dd>Top-Favorit, zählt +2</dd>
             <dt><span class="v v1">♥</span></dt><dd>Gerne, zählt +1</dd>
             <dt><span class="v vn">✕</span></dt><dd>Lieber nicht, zählt −1</dd>
-            <dt><span class="kbd">⤼</span>&nbsp;<span class="kbd">↶</span></dt><dd>Beim Swipen: überspringen · letzte Aktion rückgängig</dd>
+            <dt><span class="kbd">⏭</span>&nbsp;<span class="kbd">↺</span></dt><dd>Beim Swipen: „Später“ schiebt die Karte nach hinten · „Zurücknehmen“ macht die letzte Stimme rückgängig</dd>
             <dt><span class="kbd" style="border-radius:99px;border-style:dashed">⚑</span></dt><dd>Schon dort gewesen: streicht das Gebiet für alle</dd>
           </dl>
         </div>
@@ -541,14 +555,14 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
       </div>
       <div class="deck" id="deck"></div>
       <div class="swipe-btns">
-        <button class="sb small" type="button" id="swUndo" aria-label="Rückgängig" title="Rückgängig">↶</button>
-        <button class="sb no" type="button" data-sw="-1" aria-label="Lieber nicht" title="Lieber nicht (←)">✕</button>
-        <button class="sb top2" type="button" data-sw="2" aria-label="Top-Favorit" title="Top-Favorit (↑)">♥♥</button>
-        <button class="sb yes" type="button" data-sw="1" aria-label="Gerne" title="Gerne (→)">♥</button>
-        <button class="sb small" type="button" id="swSkip" aria-label="Überspringen" title="Überspringen">⤼</button>
+        <div class="sbw"><button class="sb small" type="button" id="swUndo" aria-label="Letzte Stimme zurücknehmen">↺</button><span>Zurücknehmen</span></div>
+        <div class="sbw"><button class="sb no" type="button" data-sw="-1" aria-label="Lieber nicht" title="Lieber nicht (←)">✕</button><span>Nö</span></div>
+        <div class="sbw"><button class="sb top2" type="button" data-sw="2" aria-label="Top-Favorit" title="Top-Favorit (↑)">♥♥</button><span>Top</span></div>
+        <div class="sbw"><button class="sb yes" type="button" data-sw="1" aria-label="Gerne" title="Gerne (→)">♥</button><span>Gerne</span></div>
+        <div class="sbw"><button class="sb small" type="button" id="swSkip" aria-label="Später entscheiden">⏭</button><span>Später</span></div>
       </div>
       <button class="sb-been" type="button" id="swBeen" title="Streicht das Gebiet für alle (Taste S)">⚑ Schon dort gewesen</button>
-      <p class="swipe-help">Nach rechts wischen = gerne · nach oben = Top-Favorit · nach links = lieber nicht. „Schon dort gewesen“ streicht das Gebiet für alle. Am Computer gehen auch die Pfeiltasten und S.</p>
+      <p class="swipe-help">Nach rechts wischen = gerne · lang nach oben ziehen = Top-Favorit · nach links = lieber nicht. „Schon dort gewesen“ streicht das Gebiet für alle. Am Computer gehen auch die Pfeiltasten und S.</p>
     </div>
   </section>
 
@@ -687,7 +701,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
     </div>
   </div>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden><span id="toastMsg"></span><button type="button" id="toastBtn" hidden></button></div>
 
 <script>
 const FIREBASE_CONFIG = {
@@ -904,9 +918,30 @@ function scored(){
 
 const dots = (v,max=5) => `<span class="dots" aria-label="${v} von ${max}">${Array.from({length:max},(_,i)=>`<i class="${i<v?"on":""}"></i>`).join("")}</span>`;
 const euros = n => `<span class="eur" aria-label="Preisniveau ${n} von 3">${"€".repeat(n)}<span class="off">${"€".repeat(3-n)}</span></span>`;
+// Einordnung eines Werts im Vergleich zu allen nicht gestrichenen Gebieten
+const REL_BAD = {km:"klein", pass:"teuer", top:"niedrig", snow:"unsicher", free:"wenig", apres:"ruhig", lodge:"teuer", drive:"weit"};
+function relTag(all, r, key, higherBetter){
+  const live = all.filter(x => !x.excluded && x.id !== r.id);
+  if (!live.length) return "";
+  const val = x => key === "drive" ? x.t.time : x[key];
+  const v = val(r);
+  const worse = live.filter(x => higherBetter ? val(x) < v : val(x) > v).length;
+  const better = live.filter(x => higherBetter ? val(x) > v : val(x) < v).length;
+  const pct = better / live.length;            // Anteil der Gebiete, die besser sind
+  if (pct <= 0.10) return `<em class="rel good">Top 10 %</em>`;
+  if (pct <= 0.25) return `<em class="rel good">Top 25 %</em>`;
+  if (worse / live.length <= 0.25) return `<em class="rel bad">${REL_BAD[key]}</em>`;
+  return `<em class="rel mid">Mitte</em>`;
+}
 const vcls = v => v===2?"v2":v===1?"v1":v===-1?"vn":"v0";
-const driveHtml = r => r.t.mode === "via" ? `<b class="num">${fmt(r.t.time)}</b><small>über Feldkirch</small>`
-  : `<div class="drive2"><div><span>Bad Soden</span><b class="num">${fmt(r.f)}</b></div><div><span>Feldkirch</span><b class="num">${fmt(r.fk)}</b></div></div><small>getrennt</small>`;
+// Fahrzeiten je Startort: Bad Soden (Adrian, Olaf), Feldkirch (Achim), Köln (Joni, über Bad Soden)
+function legTimes(r){
+  const bs = r.t.mode === "via" ? r.t.via : r.f;
+  return {bs, fk: r.fk, kl: settings.koeln + bs};
+}
+const driveHtml3 = r => { const l = legTimes(r); return `<div class="drive3"><div><b class="num">${fmt(l.bs)}</b><small>Bad Soden</small></div><div><b class="num">${fmt(l.fk)}</b><small>Feldkirch${r.t.mode==="via"?" (Achim steigt zu)":""}</small></div><div><b class="num">${fmt(l.kl)}</b><small>Köln</small></div></div>`; };
+const driveHtml = r => r.t.mode === "via" ? `<b class="num">${fmt(r.t.time)}</b><small>über Feldkirch · Köln ${fmt(settings.koeln + r.t.via)}</small>`
+  : `<div class="drive2"><div><span>Bad Soden</span><b class="num">${fmt(r.f)}</b></div><div><span>Feldkirch</span><b class="num">${fmt(r.fk)}</b></div><div><span>Köln</span><b class="num">${fmt(settings.koeln + r.f)}</b></div></div><small>getrennt</small>`;
 const voteBadges = r => PEOPLE.filter(p => r.votes[p.n]).map(p => { const v = r.votes[p.n]; return `<span class="badge ${v<0?"veto":"vote"}">${p.n} ${VOTE[v]}</span>`; }).join("");
 
 function render(){
@@ -1022,10 +1057,10 @@ function renderList(all, list){
         <td class="num hide-s">${r.km}</td>
         <td class="hide-s">${dots(r.snow)}</td>
         <td class="num">${r.pass}</td>
-        <td class="num">${r.t.mode==="via" ? fmt(r.t.time).replace(" h","") : fmt(r.f).replace(" h","")+`<small>FK ${fmt(r.fk).replace(" h","")}</small>`}</td>
+        <td class="num">${fmt(legTimes(r).bs).replace(" h","")}<small>FK ${fmt(r.fk).replace(" h","")} · K ${fmt(legTimes(r).kl).replace(" h","")}</small></td>
         <td class="num cv">${r.sum ? (r.sum>0?"+":"")+r.sum : ""}${mineMark(r)}</td>
       </tr>${open===r.id ? `<tr class="cdetail"><td colspan="8">${tile(r)}</td></tr>` : ""}`).join("")}</tbody></table></div>
-      <p class="hint">Pass € = 6-Tage-Skipass. Fahrt: Zeit ab Bad Soden, bei getrennter Anreise darunter ab Feldkirch (FK). ♥ = Summe aller Stimmen, daneben deine. Zeile antippen für Details und zum Abstimmen.</p>`;
+      <p class="hint">Pass € = 6-Tage-Skipass. Fahrt: Zeit ab Bad Soden, darunter ab Feldkirch (FK) und ab Köln (K). ♥ = Summe aller Stimmen, daneben deine. Zeile antippen für Details und zum Abstimmen.</p>`;
   }
 
   const outs = all.filter(r => r.excluded);
@@ -1057,20 +1092,21 @@ function elevSvg(r){
     </svg>`;
 }
 function cardHtml(r, cls){
+  const all = scoredCache || scored();
   const others = PEOPLE.filter(p => p.n !== ui.me && r.votes[p.n]).map(p => `<span class="badge ${r.votes[p.n]<0?"veto":"vote"}">${p.n} ${VOTE[r.votes[p.n]]}</span>`).join("");
   return `<article class="card ${cls} ${r.excluded?"is-out":""}" data-id="${r.id}" aria-label="${esc(r.name)}">
     <div class="hero">${elevSvg(r)}<span class="rankpill">${r.excluded ? "⚑ Schon dort gewesen" : "#"+r.rank}</span><span class="scorepill num">${Math.round(r.score)} Pkt.</span></div>
     <div class="body">
       <div><h3>${esc(r.name)}</h3><div class="sub">${esc(r.sub)} · ${COUNTRY[r.c]}${r.glacier?" · Gletscher":""}</div></div>
       <div class="facts">
-        <div class="fact"><span>Pisten</span><b class="num">${r.km}</b> km</div>
-        <div class="fact"><span>Skipass</span><b class="num">${r.pass}</b> €<small>${r.price?" "+r.price[1]:""}</small></div>
-        <div class="fact"><span>Höhe</span><b class="num">${r.top.toLocaleString("de-DE")}</b> m<small> Tal ${r.base.toLocaleString("de-DE")}</small></div>
-        <div class="fact"><span>Schnee März</span>${dots(r.snow)}</div>
-        <div class="fact"><span>Freeride</span>${dots(r.free)}</div>
-        <div class="fact"><span>Après</span>${dots(r.apres)}</div>
-        <div class="fact"><span>Unterkunft</span>${euros(r.lodge)}</div>
-        <div class="fact" style="grid-column:span 2"><span>Fahrt</span>${r.t.mode==="via" ? `<b class="num">${fmt(r.t.time)}</b> <small>über Feldkirch</small>` : `<div class="drive2"><div><b class="num">${fmt(r.f)}</b><small>ab Bad Soden</small></div><div><b class="num">${fmt(r.fk)}</b><small>ab Feldkirch</small></div></div>`}</div>
+        <div class="fact"><span>Pisten</span><b class="num">${r.km}</b> km${relTag(all,r,"km",1)}</div>
+        <div class="fact"><span>Skipass</span><b class="num">${r.pass}</b> €${relTag(all,r,"pass",0)}</div>
+        <div class="fact"><span>Höhe</span><b class="num">${r.top.toLocaleString("de-DE")}</b> m<small>Tal ${r.base.toLocaleString("de-DE")}</small>${relTag(all,r,"top",1)}</div>
+        <div class="fact"><span>Schnee März</span>${dots(r.snow)}${relTag(all,r,"snow",1)}</div>
+        <div class="fact"><span>Freeride</span>${dots(r.free)}${relTag(all,r,"free",1)}</div>
+        <div class="fact"><span>Après</span>${dots(r.apres)}${relTag(all,r,"apres",1)}</div>
+        <div class="fact"><span>Unterkunft</span>${euros(r.lodge)}${relTag(all,r,"lodge",0)}</div>
+        <div class="fact" style="grid-column:1/-1"><span>Fahrt ${relTag(all,r,"drive",0)}</span>${driveHtml3(r)}</div>
       </div>
       <p class="note">${esc(r.note)}</p>
       ${pisteBtn(r) ? `<div>${pisteBtn(r)}</div>` : ""}
@@ -1079,7 +1115,9 @@ function cardHtml(r, cls){
     ${cls==="top" ? `<span class="stamp yes">GERNE</span><span class="stamp no">NÖ</span><span class="stamp top2">TOP ♥♥</span><span class="stamp been">SCHON DORT</span>` : ""}
   </article>`;
 }
+let scoredCache = null;
 function renderSwipe(all){
+  scoredCache = all;
   const total = all.filter(r=>ui.swOut || !r.excluded).length;
   const done = all.filter(r=>(ui.swOut || !r.excluded) && r.mine).length;
   $("#swOut").setAttribute("aria-pressed", ui.swOut);
@@ -1113,7 +1151,7 @@ function castSwipe(v){
       undoStack.push({id, been:true});
       setMark(id, {excluded:true, reason:"Schon dort gewesen", by:ui.me});
       if (db) localMark(id, {excluded:true, reason:"Schon dort gewesen", by:ui.me});
-      toast("Für alle gestrichen. Mit ↶ rückgängig machen.");
+      toastAction("Für alle gestrichen.", "Zurücknehmen", () => $("#swUndo").click());
       render();
     }, reduced() ? 160 : 310);
     return;
@@ -1128,6 +1166,7 @@ function castSwipe(v){
     if (v !== 0){
       const prev = +((marks[id]?.votes||{})[ui.me]||0);
       undoStack.push({id, prev});
+      if (v === 2) toastAction(`Top-Favorit für ${R.find(x=>x.id===id)?.name || "das Gebiet"}.`, "Zurücknehmen", () => $("#swUndo").click(), 4500);
       setMark(id, {votes:{[ui.me]: v}});
       if (db) localMark(id, {votes:{[ui.me]: v}});
     }
@@ -1139,7 +1178,7 @@ function setStamps(c, dx, dy){
   const f = v => Math.max(0, Math.min(1, v/80));
   c.querySelector(".stamp.yes").style.opacity = up ? 0 : f(dx);
   c.querySelector(".stamp.no").style.opacity = up ? 0 : f(-dx);
-  c.querySelector(".stamp.top2").style.opacity = up ? f(-dy) : 0;
+  c.querySelector(".stamp.top2").style.opacity = up ? Math.max(0, Math.min(1, (-dy - 40)/(Math.max(170, c.offsetHeight*0.4) - 40))) : 0;
 }
 document.addEventListener("pointerdown", e => {
   const c = e.target.closest(".card.top"); if (!c || flying || e.button > 0 || e.target.closest("a,button")) return;
@@ -1167,7 +1206,9 @@ function endDrag(e){
   const dist = Math.min(80, w*0.22);
   const vertical = -dy > Math.abs(dx);
   let v = null;
-  if (vertical && (-dy > dist || (vy < -0.3 && -dy > 35))) v = 2;
+  // Top-Favorit nur bei langem, eindeutigem Hochwischen (kein Schnippen), damit Scrollen nicht aus Versehen zählt
+  if (-dy > Math.max(170, c.offsetHeight*0.4) && -dy > 2.5*Math.abs(dx)) v = 2;
+  else if (vertical) v = null;
   else if (!vertical && (dx > dist || (vx > 0.3 && dx > 35))) v = 1;
   else if (!vertical && (dx < -dist || (vx < -0.3 && dx < -35))) v = -1;
   if (v !== null){ castSwipe(v); return; }
@@ -1193,6 +1234,7 @@ function renderVotes(all){
     return `<div class="pcard ${ui.me===p.n?"mine":""}"><div><h3>${p.n}</h3><small>aus ${p.from}</small></div>
       <div class="bar"><span style="width:${n/live.length*100}%"></span></div>
       <small class="num">${n} von ${live.length} bewertet</small>
+      <small>${answersOf()[p.n] ? "7 Fragen beantwortet ✓" : `<b style="color:var(--signal)">7 Fragen noch offen</b>`}</small>
       <div class="counts num"><span class="v v2">♥♥ ${vs.filter(v=>v===2).length}</span><span class="v v1">♥ ${vs.filter(v=>v===1).length}</span><span class="v vn">✕ ${vs.filter(v=>v===-1).length}</span></div>
       ${top.length ? `<small>Top: ${top.map(esc).join(", ")}</small>` : ""}</div>`;
   }).join("");
@@ -1246,7 +1288,7 @@ function showTip(id){
   const tip = $("#ttip"), box = $("#mapwrap").getBoundingClientRect();
   const el = document.querySelector(`[data-pin="${id}"] circle:last-of-type`); if (!el) return;
   const pb = el.getBoundingClientRect();
-  const drive = r.t.mode === "via" ? `${fmt(r.t.time)} über Feldkirch` : `Bad Soden ${fmt(r.f)} · Feldkirch ${fmt(r.fk)}`;
+  const lt = legTimes(r); const drive = `Bad Soden ${fmt(lt.bs)} · Feldkirch ${fmt(lt.fk)} · Köln ${fmt(lt.kl)}`;
   tip.innerHTML = `<b>${esc(r.name)}</b><br>${Math.round(r.score)} Punkte · ${r.km} km · ${r.pass} €<br>Berg ${m(r.top)} · ${drive}${r.excluded?"<br>gestrichen":""}`;
   tip.style.left = Math.min(box.width-120, Math.max(120, pb.left + pb.width/2 - box.left)) + "px";
   tip.style.top = (pb.top - box.top) + "px";
@@ -1303,7 +1345,14 @@ function setSettings(patch){
   sTimer = setTimeout(async () => { await merge("settings/main", structuredClone(settings)); editingSettings = 0; }, 500);
 }
 let toastT;
-function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=> t.hidden = true, 3500); }
+let toastFn = null;
+function toast(msg){ toastAction(msg); }
+function toastAction(msg, label, fn, ms = 3500){
+  const t = $("#toast"); $("#toastMsg").textContent = msg;
+  const b = $("#toastBtn"); b.hidden = !label; b.textContent = label || ""; toastFn = fn || null;
+  t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=> t.hidden = true, ms);
+}
+document.addEventListener("click", e => { if (e.target.id === "toastBtn"){ $("#toast").hidden = true; const f = toastFn; toastFn = null; f && f(); } });
 
 // ---------- Ereignisse ----------
 document.addEventListener("click", e => {
@@ -1387,7 +1436,8 @@ function effWeights(){
 const fmtW = v => (Math.round(v*10)/10).toLocaleString("de-DE");
 function renderQuizState(){
   const a = answersOf(); const done = PEOPLE.filter(p => a[p.n]).map(p => p.n);
-  $("#quizState").textContent = done.length ? `Beantwortet: ${done.join(", ")} (${done.length}/4)` : "Noch niemand hat geantwortet.";
+  const open4 = PEOPLE.filter(p => !a[p.n]).map(p => p.n);
+  $("#quizState").innerHTML = (done.length ? `Beantwortet: ${done.join(", ")} (${done.length}/4)` : "Noch niemand hat geantwortet.") + (open4.length && done.length ? ` · <b style="color:var(--signal)">noch offen: ${open4.join(", ")}</b>` : "");
   $("#quizOpen").textContent = ui.me && a[ui.me] ? "Alle Antworten als Tabelle" : "Alle Fragen nacheinander";
 }
 function renderQuiz(){
@@ -1596,7 +1646,7 @@ const INTRO = [
    body: () => `<div class="eyebrow">Schritt 3</div><h2 id="introTitle">Swipen wie bei Tinder</h2>
      <ul>
        <li><span class="k" style="color:var(--good)">→ ♥</span><span>nach rechts: gerne</span></li>
-       <li><span class="k" style="color:var(--signal)">↑ ♥♥</span><span>nach oben: Top-Favorit</span></li>
+       <li><span class="k" style="color:var(--signal)">↑ ♥♥</span><span>lang nach oben ziehen: Top-Favorit</span></li>
        <li><span class="k">← ✕</span><span>nach links: lieber nicht</span></li>
        <li><span class="k">⚑</span><span>„Schon dort gewesen“ streicht ein Gebiet für alle</span></li>
      </ul>
