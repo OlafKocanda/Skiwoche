@@ -511,8 +511,8 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
           <h3>Der Ablauf</h3>
           <ol>
             <li><b>Namen wählen:</b> Oben auf deinen Namen tippen. Das Gerät merkt sich das.</li>
-            <li><b>① Swipen:</b> Jedes Gebiet bewerten: rechts = gerne, lang nach oben ziehen = Top-Favorit, links = lieber nicht. „Schon dort gewesen“ streicht ein Gebiet für alle.</li>
-            <li><b>② Ergebnis:</b> Der Regler mischt <b>objektiv</b> (Daten, gewichtet nach euren Antworten bei „Was ist euch wichtig?“) und <b>subjektiv</b> (eure Herzen). Daraus entstehen Gesamt-Wertung und Rang. Darunter: Liste, Karte und Stimmen. Filter gelten nur für dich.</li>
+            <li><b>① Swipen:</b> Oben bei „Was ist euch wichtig?“ die 7 Fragen beantworten, dann jedes Gebiet bewerten: rechts = gerne, lang nach oben ziehen = Top-Favorit, links = lieber nicht. „Schon dort gewesen“ streicht ein Gebiet für alle.</li>
+            <li><b>② Ergebnis:</b> Der Regler mischt <b>objektiv</b> (Daten, gewichtet nach euren Antworten aus ①) und <b>subjektiv</b> (eure Herzen). Daraus entstehen Gesamt-Wertung und Rang. Darunter: Liste, Karte und Stimmen. Filter gelten nur für dich.</li>
             <li><b>③ Planen:</b> Für die Top 5 aus dem Ergebnis gibt es Wohnorte mit Lift- oder Skibus-Anbindung, Suchlinks zu Booking und Airbnb für euren Zeitraum und eine gemeinsame Liste eurer Apartment-Favoriten.</li>
           </ol>
         </div>
@@ -560,6 +560,15 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
 
   <!-- SWIPEN -->
   <section class="tabpane" id="p-swipe" role="tabpanel" aria-labelledby="t-swipe">
+    <details class="panel fold" id="wFold">
+      <summary><h2>Was ist euch wichtig?</h2><span class="wsum" id="wSum"></span></summary>
+      <div style="display:grid;gap:10px">
+        <p class="hint" style="margin:0">Jeder beantwortet die Fragen für sich. Die Gewichtung ist automatisch der <b>Schnitt aller Antworten</b> (Ø) und bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Ändern geht jederzeit, einfach eine andere Antwort antippen.</p>
+        <div class="quizbar"><span class="hint" id="quizState"></span><button class="linkbtn" type="button" id="quizOpen">Alle Fragen nacheinander</button></div>
+        <div class="answers" id="weights"></div>
+        <p class="hint">Ø-Skala: 0 = egal, 5 = sehr wichtig. Volle Teilpunkte: ab 300 km Piste, bis 350 € Skipass, bis 5:30 h Fahrt, 5 von 5 bei Schnee, Freeride und Après, € bei der Unterkunft. Null Teilpunkte: 100 km, 470 €, 9 h. Schnee ist für März bewertet. Solange noch niemand geantwortet hat, gilt eine Standard-Gewichtung.</p>
+      </div>
+    </details>
     <div class="swipe">
       <div class="swipe-top">
         <div class="progress"><div class="hint" id="swProg"></div><div class="bar"><span id="swBar" style="width:0"></span></div></div>
@@ -589,17 +598,9 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
         <input type="range" id="mix" min="0" max="100" step="10" aria-label="Mischung aus Daten und Herzen">
         <div class="mixval" id="mixVal"></div>
       </div>
+      <p class="hint" style="margin:0">Objektiv heißt: Daten, gewichtet nach euren Antworten auf „Was ist euch wichtig?“ (<span id="mixW"></span>). <button class="linkbtn" type="button" data-openw>Antworten ansehen oder ändern</button></p>
       <div class="podium" id="podium"></div>
     </div>
-    <details class="panel fold" id="wFold">
-      <summary><h2>Was ist euch wichtig?</h2><span class="wsum" id="wSum"></span></summary>
-      <div style="display:grid;gap:10px">
-        <p class="hint" style="margin:0">Jeder beantwortet die Fragen für sich. Die Gewichtung ist automatisch der <b>Schnitt aller Antworten</b> (Ø) und bestimmt Punkte, Rang und die Reihenfolge beim Swipen. Ändern geht jederzeit, einfach eine andere Antwort antippen.</p>
-        <div class="quizbar"><span class="hint" id="quizState"></span><button class="linkbtn" type="button" id="quizOpen">Alle Fragen nacheinander</button></div>
-        <div class="answers" id="weights"></div>
-        <p class="hint">Ø-Skala: 0 = egal, 5 = sehr wichtig. Volle Teilpunkte: ab 300 km Piste, bis 350 € Skipass, bis 5:30 h Fahrt, 5 von 5 bei Schnee, Freeride und Après, € bei der Unterkunft. Null Teilpunkte: 100 km, 470 €, 9 h. Schnee ist für März bewertet. Solange noch niemand geantwortet hat, gilt eine Standard-Gewichtung.</p>
-      </div>
-    </details>
     <details class="route fold" id="routeFold">
       <summary><h2>Anreise</h2><span class="hint" id="routeSum"></span></summary>
       <div style="display:grid;gap:12px">
@@ -996,6 +997,7 @@ function render(){
   renderQuizState();
   const SHORT = {snow:"Schnee",size:"Größe",price:"Preis",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"};
   const ew = effWeights();
+  const mw = $("#mixW"); if (mw) mw.textContent = CRIT.slice().sort((a,b)=>ew[b.k]-ew[a.k]).map(c=>`${SHORT[c.k]} ${fmtW(ew[c.k])}`).join(" · ");
   $("#wSum").innerHTML = $("#wFold").open ? "" : CRIT.slice().sort((a,b)=>ew[b.k]-ew[a.k]).filter(c=>ew[c.k]>0).map(c=>`<span>${SHORT[c.k]} <b class="num">${fmtW(ew[c.k])}</b></span>`).join("");
   const list = filtered(all);
   if (ui.tab === "swipe") renderSwipe(all);
@@ -1406,6 +1408,7 @@ document.addEventListener("click", e => {
   if (b.id === "guideOk"){ $("#guide").open = false; ui.guideSeen = true; saveUi(); }
   else if (b.dataset.tab) setTab(b.dataset.tab);
   else if (b.dataset.tabgo){ if (SUBS.includes(b.dataset.tabgo)){ ui.sub = b.dataset.tabgo; setTab("result"); } else setTab(b.dataset.tabgo); }
+  else if (b.hasAttribute("data-openw")){ $("#wFold").open = true; setTab("swipe"); }
   else if (b.dataset.sub){ ui.sub = b.dataset.sub; saveUi(); $("#ttip").hidden = true; render(); }
   else if (b.dataset.compact !== undefined){ ui.compact = b.dataset.compact === "1"; saveUi(); render(); }
   else if (b.dataset.view){ ui.view = b.dataset.view; saveUi(); render(); }
