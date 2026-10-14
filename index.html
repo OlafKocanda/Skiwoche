@@ -178,6 +178,7 @@ nav.tabs button[aria-selected="true"] .stepno{background:var(--surface);color:va
 .pod small{color:var(--muted);font-size:12px}
 
 /* Planen */
+.staybar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
 .tripdates{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 .tripdates input[type=date]{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .plan-list{display:grid;gap:14px}
@@ -702,6 +703,17 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
       </div>
       <p class="hint" style="margin:0">Der Zeitraum gilt für alle und steckt in den Suchlinks. Ostern ist am 28. März 2027, die Wochen davor und danach sind Ferienzeit und teurer.</p>
       <p class="hint" style="margin:0">Hier stehen die Top 5 aus <b>② Ergebnis</b>, also nach eurem Regler aus Daten und Herzen.</p>
+      <div class="staybar">
+        <label class="field" for="staySort">Unterkünfte sortieren <select id="staySort" class="chip" style="padding:5px 8px">
+          <option value="votes">Stimmen</option><option value="price">Preis</option><option value="bus">Weg zum Skibus</option><option value="lift">Weg zum Lift</option><option value="new">Neueste</option>
+        </select></label>
+        <div class="chips">
+          <button class="chip" type="button" data-sf="sauna" aria-pressed="false">Nur mit Sauna</button>
+          <button class="chip" type="button" data-sf="bus" aria-pressed="false">Skibus ≤ 100 m</button>
+          <button class="chip" type="button" data-sf="park" aria-pressed="false">Parkplatz angegeben</button>
+          <button class="chip" type="button" data-sf="budget" aria-pressed="false">≤ 450 € pro Person</button>
+        </div>
+      </div>
     </div>
     <div id="planList" class="plan-list"></div>
   </section>
@@ -1585,10 +1597,22 @@ function planTop(all){
   const live = all.filter(r => !r.excluded);
   return live.slice().sort((a,b) => b.total - a.total || b.score - a.score).slice(0,5);
 }
-function stayList(id){
+function stayAll(id){
   return Object.entries(stays[id] || {}).map(([k,s]) => ({...s, key:k})).filter(s => s && s.title)
-    .map(s => { const v = s.votes || {}; s.vsum = Object.values(v).reduce((a,b)=>a+(+b||0),0); s.pp = s.price ? s.price / 4 / nights() : null; return s; })
-    .sort((a,b) => b.vsum - a.vsum || (a.pp ?? 1e9) - (b.pp ?? 1e9));
+    .map(s => { const v = s.votes || {}; s.vsum = Object.values(v).reduce((a,b)=>a+(+b||0),0); s.pp = s.price ? s.price / 4 / nights() : null; return s; });
+}
+function stayList(id){
+  const f = ui.stayFilter || {}, big = 1e9;
+  const sorters = {
+    votes: (a,b) => b.vsum - a.vsum || (a.price ?? big) - (b.price ?? big),
+    price: (a,b) => (a.price ?? big) - (b.price ?? big),
+    bus:   (a,b) => (a.bus ?? big) - (b.bus ?? big) || (a.price ?? big) - (b.price ?? big),
+    lift:  (a,b) => (a.access === "skiin" ? -1 : a.dist ?? big) - (b.access === "skiin" ? -1 : b.dist ?? big) || (a.bus ?? big) - (b.bus ?? big),
+    new:   (a,b) => (b.ts || 0) - (a.ts || 0)
+  };
+  return stayAll(id).filter(s => (!f.sauna || s.sauna) && (!f.bus || (typeof s.bus === "number" && s.bus <= 100) || s.access === "skiin" || s.access === "walk")
+      && (!f.park || s.parking) && (!f.budget || (s.price && s.price/4 <= 450)))
+    .sort(sorters[ui.staySort] || sorters.votes);
 }
 function renderPlan(all){
   const t = tripDates();
@@ -1596,10 +1620,12 @@ function renderPlan(all){
   if (document.activeElement !== $("#tripOut")) $("#tripOut").value = t.checkout;
   $("#tripNights").textContent = `${fmtDate(t.checkin)} bis ${fmtDate(t.checkout)} · ${nights()} Nächte · 4 Personen`;
   document.querySelectorAll("[data-planby]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.planby === (ui.planBy || "votes"))));
+  $("#staySort").value = ui.staySort || "votes";
+  document.querySelectorAll("[data-sf]").forEach(b => b.setAttribute("aria-pressed", String(!!(ui.stayFilter||{})[b.dataset.sf])));
   const top = planTop(all);
   $("#planList").innerHTML = top.map((r, i) => {
     const bases = BASES[r.id] || [{name: r.vname || r.name, access:"lift", price:2, note:"Hauptort des Gebiets"}];
-    const sl = stayList(r.id);
+    const sl = stayList(r.id), slAll = stayAll(r.id).length;
     const voters = PEOPLE.filter(p => r.votes[p.n]).map(p => `${p.n} ${VOTE[r.votes[p.n]]}`).join(" · ");
     return `<article class="pcard2" id="plan-${r.id}">
       <header><div><div class="eyebrow">#${i+1} im Ergebnis · Gesamt ${Math.round(r.total)}</div><h3>${esc(r.name)}</h3><div class="meta">${esc(r.sub)} · ${Math.round(r.score)} Pkt.${voters ? " · " + voters : ""}</div></div>${pisteBtn(r)}</header>
@@ -1609,15 +1635,15 @@ function renderPlan(all){
         <div class="links"><a href="${l.booking}" target="_blank" rel="noopener">Booking ↗</a><a href="${l.airbnb}" target="_blank" rel="noopener">Airbnb ↗</a><a href="${l.maps}" target="_blank" rel="noopener">Karte ↗</a></div>
       </div>`; }).join("")}
       <p class="hint" style="margin:0">Die Links suchen Apartments für 4 Personen in eurem Zeitraum. Den Filter „Sauna“ bitte auf der Seite selbst anhaken.</p></div>
-      <div class="stays"><h4>Eure Unterkünfte (${sl.length})</h4>
-        ${sl.length ? sl.map((s, j) => `<div class="stay ${j===0 && s.vsum>0 ? "top":""}">
+      <div class="stays"><h4>Eure Unterkünfte (${sl.length === slAll ? slAll : sl.length + " von " + slAll})</h4>
+        ${!sl.length && slAll ? `<p class="hint" style="margin:0">Alle ${slAll} Unterkünfte sind durch deine Filter ausgeblendet.</p>` : ""}${sl.length ? sl.map((s, j) => `<div class="stay ${j===0 && s.vsum>0 ? "top":""}">
           <div><a class="t" href="${esc(s.url||"#")}" target="_blank" rel="noopener">${esc(s.title)} ↗</a>
             <div class="tags">${s.sauna ? '<span class="acc walk">Sauna</span>' : '<span class="acc car">ohne Sauna</span>'}<span class="acc ${s.access||"bus"}">${ACC[s.access]||""}${s.dist ? " · Lift " + fmtM(s.dist) : ""}</span>${typeof s.bus === "number" ? `<span class="acc bus">Skibus ${fmtM(s.bus)}</span>` : ""}${s.parking ? `<span class="acc park">P: ${esc(s.parking)}</span>` : ""}${s.note ? `<span>${esc(s.note)}</span>` : ""}</div></div>
           <div class="pp">${s.price ? Math.round(s.price).toLocaleString("de-DE") + " €" : "–"}<small>${s.price ? `gesamt für 4 · <b>${Math.round(s.price/4).toLocaleString("de-DE")} € pro Person</b> · ${Math.round(s.pp)} € pro Person/Nacht` : "Preis fehlt"}</small></div>
           <div class="row2"><span class="who">von ${esc(s.by||"?")}${Object.keys(s.votes||{}).length ? " · " + Object.entries(s.votes).map(([n,v]) => n + (v>0?" 👍":" 👎")).join(", ") : ""}</span>
             <span style="display:flex;gap:6px;align-items:center"><span class="svote"><button type="button" data-svote="1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===1}" aria-label="Gefällt mir">👍</button><button type="button" class="no" data-svote="-1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===-1}" aria-label="Gefällt mir nicht">👎</button></span>
             ${s.by === ui.me ? `<button class="btn" type="button" data-sdel="${s.key}" data-area="${r.id}" style="padding:5px 9px">Löschen</button>` : ""}</span></div>
-        </div>`).join("") : `<p class="hint" style="margin:0">Noch nichts eingetragen. Findet ihr bei Booking oder Airbnb etwas Passendes, tragt es hier ein, damit alle es sehen und abstimmen können.</p>`}
+        </div>`).join("") : slAll ? "" : `<p class="hint" style="margin:0">Noch nichts eingetragen. Findet ihr bei Booking oder Airbnb etwas Passendes, tragt es hier ein, damit alle es sehen und abstimmen können.</p>`}
         ${addingFor === r.id ? `<form class="addstay" data-addfor="${r.id}">
           <label>Link zur Unterkunft<input name="url" type="url" required placeholder="https://www.booking.com/..." maxlength="600"></label>
           <label>Name<input name="title" required maxlength="120" placeholder="z. B. Apartment Alpenblick, 2 Schlafzimmer"></label>
@@ -1650,6 +1676,7 @@ async function stayWrite(area, key, val){
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.sf){ ui.stayFilter = {...(ui.stayFilter||{}), [b.dataset.sf]: !(ui.stayFilter||{})[b.dataset.sf]}; saveUi(); render(); return; }
   if (b.dataset.planby){ ui.planBy = b.dataset.planby; saveUi(); render(); }
   else if (b.dataset.addstay){ if (!ui.me){ toast("Wähle zuerst oben, wer du bist."); return; } addingFor = b.dataset.addstay; render(); document.querySelector(`[data-addfor="${addingFor}"] input`)?.focus(); }
   else if (b.hasAttribute("data-addcancel")){ addingFor = null; render(); }
@@ -1658,6 +1685,7 @@ document.addEventListener("click", e => {
     stayWrite(b.dataset.area, b.dataset.key, {["votes/" + ui.me]: cur === v ? null : v}); }
   else if (b.dataset.sdel){ stayWrite(b.dataset.area, b.dataset.sdel, null); }
 });
+document.addEventListener("change", e => { if (e.target.id === "staySort"){ ui.staySort = e.target.value; saveUi(); render(); } });
 document.addEventListener("submit", e => {
   const f = e.target.closest("[data-addfor]"); if (!f) return;
   e.preventDefault();
