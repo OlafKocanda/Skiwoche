@@ -68,6 +68,12 @@
                 ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
               }
             },
+            "bus": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20000"
+            },
+            "parking": {
+              ".validate": "newData.isString() && newData.val().length <= 80"
+            },
             "$other": {
               ".validate": false
             }
