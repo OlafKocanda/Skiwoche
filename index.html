@@ -332,7 +332,7 @@ nav.tabs button[aria-selected="true"] .stepno{background:var(--surface);color:va
 .done h3{font-size:26px}
 
 /* Stimmen */
-.peoplegrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.peoplegrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 @media (max-width:760px){.peoplegrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:6px}
 .pcard.mine{border-color:var(--accent)}
@@ -494,7 +494,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="eyebrow">Skiwoche im März 2027 · Joni · Achim · Adrian · Olaf</div>
+      <div class="eyebrow">Skiwoche im März 2027 · Joni · Achim · Adrian · Olaf · Yusuke</div>
       <h1>Skiwochen-Planer</h1>
     </div>
     <span class="status" id="status"><i></i><span>Verbinde …</span></span>
@@ -595,7 +595,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
   <!-- ERGEBNIS -->
   <section class="tabpane" id="p-result" role="tabpanel" aria-labelledby="t-result" hidden>
     <div class="panel mixpanel">
-      <div class="panel-head"><h2>Ergebnis</h2><span class="hint">gilt für alle vier</span></div>
+      <div class="panel-head"><h2>Ergebnis</h2><span class="hint">gilt für alle</span></div>
       <div class="mix">
         <div class="mixlabels"><span><b>Objektiv</b><small>nur Daten &amp; eure Gewichtung</small></span><span style="text-align:right"><b>Subjektiv</b><small>nur eure Herzen</small></span></div>
         <input type="range" id="mix" min="0" max="100" step="10" aria-label="Mischung aus Daten und Herzen">
@@ -614,7 +614,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
         </div>
         <div class="legs">
           <span class="stop">Köln</span><span class="leg" id="legKoeln">Joni</span>
-          <span class="stop">Bad Soden</span><span class="leg">Auto: Adrian, Olaf, Joni</span>
+          <span class="stop">Bad Soden</span><span class="leg">Auto: Adrian, Olaf, Yusuke, Joni</span>
           <span class="stop" id="legVia">→ Feldkirch (Achim steigt zu) →</span>
           <span class="stop">Skigebiet</span>
         </div>
@@ -695,7 +695,7 @@ details.outs summary{cursor:pointer;font-family:var(--display);font-weight:600;f
   <!-- PLANEN -->
   <section class="tabpane" id="p-plan" role="tabpanel" aria-labelledby="t-plan" hidden>
     <div class="panel">
-      <div class="panel-head"><h2>Unterkunft planen</h2><span class="hint">Apartment für 4 · Sauna gesetzt</span></div>
+      <div class="panel-head"><h2>Unterkunft planen</h2><span class="hint">Apartment für 5 · Sauna gesetzt</span></div>
       <div class="tripdates">
         <label class="field" for="tripIn">Anreise <input type="date" id="tripIn"></label>
         <label class="field" for="tripOut">Abreise <input type="date" id="tripOut"></label>
@@ -759,7 +759,8 @@ const FIREBASE_CONFIG = {
   appId: "1:637282359639:web:a0c7cc2e31d23e9da0c612"
 };
 const ROOT = "skiwoche";
-const PEOPLE = [{n:"Joni",from:"Köln"},{n:"Achim",from:"Feldkirch"},{n:"Adrian",from:"Bad Soden"},{n:"Olaf",from:"Bad Soden"}];
+const PEOPLE = [{n:"Joni",from:"Köln"},{n:"Achim",from:"Feldkirch"},{n:"Adrian",from:"Bad Soden"},{n:"Olaf",from:"Bad Soden"},{n:"Yusuke",from:"Bad Soden"}];
+const GROUP = PEOPLE.length;   // Personen für Unterkunft und Preise pro Kopf
 // [id, Name, Untertitel, Land, Pistenkm, Gipfel, Tal, Schnee im März 1-5, Skipass €, Bad Soden→, Feldkirch→, Après 1-5, Unterkunft 1-3, Freeride 1-5, Website, Notiz, Gletscher]
 const RAW = [
 ["arlberg","Ski Arlberg","St. Anton · Lech · Zürs · Warth","AT",305,2811,1304,5,397,"5:15","0:50",5,3,5,"skiarlberg.at","Größtes zusammenhängendes Gebiet Österreichs, Lech/Warth extrem schneereich. Freeride-Klassiker.",0],
@@ -958,7 +959,7 @@ function scored(){
     const mk = marks[r.id] || {};
     const votes = {}; let sum = 0, cnt = 0, pos = 0, neg = 0;
     for (const p of PEOPLE){ const v = +((mk.votes||{})[p.n]||0); votes[p.n] = v; sum += v; if (v) cnt++; if (v>0) pos++; if (v<0) neg++; }
-    const heart = Math.max(0, Math.min(100, (sum + 4) / 12 * 100));   // −4 … +8 → 0 … 100
+    const heart = Math.max(0, Math.min(100, (sum + GROUP) / (3 * GROUP) * 100));   // −N … +2N → 0 … 100
     const mix = mixVal();
     const total = (1 - mix) * score + mix * heart;
     return {...r, t, score, heart, total, excluded: !!mk.excluded, reason: mk.reason||"", votes, sum, cnt, pos, neg, mine: ui.me ? votes[ui.me] : 0};
@@ -986,7 +987,7 @@ function relTag(all, r, key, higherBetter){
   return `<em class="rel mid">Mitte</em>`;
 }
 const vcls = v => v===2?"v2":v===1?"v1":v===-1?"vn":"v0";
-// Fahrzeiten je Startort: Bad Soden (Adrian, Olaf), Feldkirch (Achim), Köln (Joni, über Bad Soden)
+// Fahrzeiten je Startort: Bad Soden (Adrian, Olaf, Yusuke), Feldkirch (Achim), Köln (Joni, über Bad Soden)
 function legTimes(r){
   const bs = r.t.mode === "via" ? r.t.via : r.f;
   return {bs, fk: r.fk, kl: settings.koeln + bs};
@@ -1093,7 +1094,7 @@ function renderList(all, list){
         <div class="trip">
           <div class="${t.mode==="split"?"chosen":""}"><span class="lbl">Getrennt</span>Bad Soden → Gebiet <b class="num">${fmt(r.f)}</b><br>Feldkirch → Gebiet <b class="num">${fmt(r.fk)}</b></div>
           <div class="${t.mode==="via"?"chosen":""}"><span class="lbl">Über Feldkirch</span>Bad Soden → Feldkirch → Gebiet <b class="num">${fmt(t.via)}</b><br>Umweg <b class="num">${t.detour>0?"+":""}${Math.round(t.detour)} min</b>, ein Auto weniger</div>
-          <div><span class="lbl">Pro Person</span>Joni <b class="num">${fmt(settings.koeln + (t.mode==="via"?t.via:r.f))}</b> · Adrian, Olaf <b class="num">${fmt(t.mode==="via"?t.via:r.f)}</b><br>Achim ${achim}</div>
+          <div><span class="lbl">Pro Person</span>Joni <b class="num">${fmt(settings.koeln + (t.mode==="via"?t.via:r.f))}</b> · Adrian, Olaf, Yusuke <b class="num">${fmt(t.mode==="via"?t.via:r.f)}</b><br>Achim ${achim}</div>
         </div>
         ${r.excluded ? `<div class="strike"><span>Gestrichen: ${esc(r.reason||"ohne Grund")}</span><button class="btn" type="button" data-restore="${r.id}">Wieder aufnehmen</button></div>`
           : striking === r.id ? `<div class="strike"><input id="reason-${r.id}" aria-label="Grund" value="Schon dort gewesen" maxlength="80"><button class="btn danger" type="button" data-confirm="${r.id}">Für alle streichen</button><button class="btn" type="button" data-cancel>Abbrechen</button></div>`
@@ -1302,11 +1303,11 @@ function renderVotes(all){
   }).join("");
 
   const item = r => `<li><button type="button" data-goto="${r.id}">${esc(r.name)}</button> <small class="num">${r.sum>0?"+":""}${r.sum} · ${PEOPLE.filter(p=>r.votes[p.n]).map(p=>p.n+" "+VOTE[r.votes[p.n]]).join(", ")}</small></li>`;
-  const matches = live.filter(r => r.pos === 4).sort((a,b)=>b.sum-a.sum||b.score-a.score);
+  const matches = live.filter(r => r.pos === GROUP).sort((a,b)=>b.sum-a.sum||b.score-a.score);
   const close = live.filter(r => r.pos >= 2 && r.neg === 0 && r.pos < 4).sort((a,b)=>b.sum-a.sum||b.score-a.score).slice(0,8);
   const vetos = live.filter(r => r.neg > 0).sort((a,b)=>b.neg-a.neg||a.sum-b.sum);
   $("#buckets").innerHTML = `
-    <div class="bucket match"><h3>Match: alle vier dafür</h3>${matches.length ? `<ol>${matches.map(item).join("")}</ol>` : `<p class="hint">Noch kein Gebiet, das alle vier mögen. Swipen hilft.</p>`}</div>
+    <div class="bucket match"><h3>Match: alle dafür</h3>${matches.length ? `<ol>${matches.map(item).join("")}</ol>` : `<p class="hint">Noch kein Gebiet, das alle mögen. Swipen hilft.</p>`}</div>
     <div class="bucket"><h3>Fast: mehrere dafür, keiner dagegen</h3>${close.length ? `<ol>${close.map(item).join("")}</ol>` : `<p class="hint">Noch nichts.</p>`}</div>
     <div class="bucket"><h3>Hat ein Nein</h3>${vetos.length ? `<ul>${vetos.map(item).join("")}</ul>` : `<p class="hint">Noch keine Gegenstimmen.</p>`}</div>`;
 
@@ -1314,7 +1315,7 @@ function renderVotes(all){
   const rows = live.filter(r => ui.mxAll || r.cnt).sort((a,b)=> b.sum - a.sum || b.cnt - a.cnt || b.score - a.score);
   $("#matrix").innerHTML = rows.length ? `<div class="matrix-wrap"><table class="matrix">
     <thead><tr><th>Gebiet</th>${PEOPLE.map(p=>`<th class="${ui.me===p.n?"mine":""}">${p.n}<small>${p.from}</small></th>`).join("")}<th>Summe</th><th>Punkte</th></tr></thead>
-    <tbody>${rows.map(r => `<tr class="${r.pos===4?"allyes":""}"><td><button class="goto" type="button" data-goto="${r.id}">${esc(r.name)}</button></td>${PEOPLE.map(p => { const v = r.votes[p.n]; return `<td class="${ui.me===p.n?"mine":""}"><span class="v ${vcls(v)}">${VOTE[v]||"·"}</span></td>`; }).join("")}<td class="sum num">${r.sum>0?"+":""}${r.sum}</td><td class="num">${Math.round(r.score)}</td></tr>`).join("")}</tbody></table></div>`
+    <tbody>${rows.map(r => `<tr class="${r.pos===GROUP?"allyes":""}"><td><button class="goto" type="button" data-goto="${r.id}">${esc(r.name)}</button></td>${PEOPLE.map(p => { const v = r.votes[p.n]; return `<td class="${ui.me===p.n?"mine":""}"><span class="v ${vcls(v)}">${VOTE[v]||"·"}</span></td>`; }).join("")}<td class="sum num">${r.sum>0?"+":""}${r.sum}</td><td class="num">${Math.round(r.score)}</td></tr>`).join("")}</tbody></table></div>`
     : `<p class="hint">Noch keine Stimmen. Fang im Tab „Swipen“ an.</p>`;
 }
 
@@ -1501,7 +1502,7 @@ const fmtW = v => (Math.round(v*10)/10).toLocaleString("de-DE");
 function renderQuizState(){
   const a = answersOf(); const done = PEOPLE.filter(p => a[p.n]).map(p => p.n);
   const open4 = PEOPLE.filter(p => !a[p.n]).map(p => p.n);
-  $("#quizState").innerHTML = (done.length ? `Beantwortet: ${done.join(", ")} (${done.length}/4)` : "Noch niemand hat geantwortet.") + (open4.length && done.length ? ` · <b style="color:var(--signal)">noch offen: ${open4.join(", ")}</b>` : "");
+  $("#quizState").innerHTML = (done.length ? `Beantwortet: ${done.join(", ")} (${done.length}/${GROUP})` : "Noch niemand hat geantwortet.") + (open4.length && done.length ? ` · <b style="color:var(--signal)">noch offen: ${open4.join(", ")}</b>` : "");
   $("#quizOpen").textContent = ui.me && a[ui.me] ? "Alle Antworten als Tabelle" : "Alle Fragen nacheinander";
 }
 function renderQuiz(){
@@ -1519,7 +1520,7 @@ function renderQuiz(){
   body.innerHTML = `<div class="eyebrow">Ergebnis</div><h2 id="quizTitle" style="font-size:24px">Was euch wichtig ist</h2>
     <div style="overflow-x:auto"><table class="qres"><thead><tr><th></th>${PEOPLE.map(p=>`<th>${p.n}</th>`).join("")}<th title="Schnitt">Ø</th></tr></thead>
     <tbody>${CRIT.map(c => `<tr><td>${({snow:"Schnee",size:"Größe",price:"Skipass",drive:"Fahrt",free:"Freeride",apres:"Après",lodge:"Unterkunft"})[c.k]}</td>${PEOPLE.map(p=>`<td>${cell(p.n,c.k)}</td>`).join("")}<td class="avg">${fmtW(g[c.k])}</td></tr>`).join("")}</tbody></table></div>
-    <p class="hint">Ø = Schnitt aller, die geantwortet haben (${PEOPLE.filter(p=>a[p.n]).length}/4). Daraus ergibt sich automatisch die Gewichtung für alle. Einzelne Antworten änderst du jederzeit oben unter „Was ist euch wichtig?“.</p>
+    <p class="hint">Ø = Schnitt aller, die geantwortet haben (${PEOPLE.filter(p=>a[p.n]).length}/${GROUP}). Daraus ergibt sich automatisch die Gewichtung für alle. Einzelne Antworten änderst du jederzeit oben unter „Was ist euch wichtig?“.</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" type="button" id="quizApply">${quizFromIntro ? "Weiter" : "Fertig"}</button><button class="btn" type="button" id="quizRetake">Meine Antworten ändern</button></div>`;
 }
 function openQuiz(fresh){
@@ -1588,8 +1589,8 @@ const fmtDate = s => new Date(s+"T12:00:00").toLocaleDateString("de-DE",{weekday
 function searchLinks(place){
   const t = tripDates(), q = encodeURIComponent(place);
   return {
-    booking: `https://www.booking.com/searchresults.de.html?ss=${q}&checkin=${t.checkin}&checkout=${t.checkout}&group_adults=4&no_rooms=1&group_children=0&nflt=ht_id%3D201`,
-    airbnb: `https://www.airbnb.de/s/${q}/homes?checkin=${t.checkin}&checkout=${t.checkout}&adults=4&min_bedrooms=2`,
+    booking: `https://www.booking.com/searchresults.de.html?ss=${q}&checkin=${t.checkin}&checkout=${t.checkout}&group_adults=${GROUP}&no_rooms=1&group_children=0&nflt=ht_id%3D201`,
+    airbnb: `https://www.airbnb.de/s/${q}/homes?checkin=${t.checkin}&checkout=${t.checkout}&adults=${GROUP}&min_bedrooms=3`,
     maps: `https://www.google.com/maps/search/${encodeURIComponent(place + " Talstation")}`
   };
 }
@@ -1599,7 +1600,7 @@ function planTop(all){
 }
 function stayAll(id){
   return Object.entries(stays[id] || {}).map(([k,s]) => ({...s, key:k})).filter(s => s && s.title)
-    .map(s => { const v = s.votes || {}; s.vsum = Object.values(v).reduce((a,b)=>a+(+b||0),0); s.pp = s.price ? s.price / 4 / nights() : null; return s; });
+    .map(s => { const v = s.votes || {}; s.vsum = Object.values(v).reduce((a,b)=>a+(+b||0),0); s.pp = s.price ? s.price / GROUP / nights() : null; return s; });
 }
 function stayList(id){
   const f = ui.stayFilter || {}, big = 1e9;
@@ -1611,14 +1612,14 @@ function stayList(id){
     new:   (a,b) => (b.ts || 0) - (a.ts || 0)
   };
   return stayAll(id).filter(s => (!f.sauna || s.sauna) && (!f.bus || (typeof s.bus === "number" && s.bus <= 100) || s.access === "skiin" || s.access === "walk")
-      && (!f.park || s.parking) && (!f.budget || (s.price && s.price/4 <= 450)))
+      && (!f.park || s.parking) && (!f.budget || (s.price && s.price/GROUP <= 450)))
     .sort(sorters[ui.staySort] || sorters.votes);
 }
 function renderPlan(all){
   const t = tripDates();
   if (document.activeElement !== $("#tripIn")) $("#tripIn").value = t.checkin;
   if (document.activeElement !== $("#tripOut")) $("#tripOut").value = t.checkout;
-  $("#tripNights").textContent = `${fmtDate(t.checkin)} bis ${fmtDate(t.checkout)} · ${nights()} Nächte · 4 Personen`;
+  $("#tripNights").textContent = `${fmtDate(t.checkin)} bis ${fmtDate(t.checkout)} · ${nights()} Nächte · ${GROUP} Personen`;
   document.querySelectorAll("[data-planby]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.planby === (ui.planBy || "votes"))));
   $("#staySort").value = ui.staySort || "votes";
   document.querySelectorAll("[data-sf]").forEach(b => b.setAttribute("aria-pressed", String(!!(ui.stayFilter||{})[b.dataset.sf])));
@@ -1634,12 +1635,12 @@ function renderPlan(all){
         ${b.note ? `<span class="note">${esc(b.note)} · Preisniveau ${"€".repeat(b.price||2)}</span>` : ""}
         <div class="links"><a href="${l.booking}" target="_blank" rel="noopener">Booking ↗</a><a href="${l.airbnb}" target="_blank" rel="noopener">Airbnb ↗</a><a href="${l.maps}" target="_blank" rel="noopener">Karte ↗</a></div>
       </div>`; }).join("")}
-      <p class="hint" style="margin:0">Die Links suchen Apartments für 4 Personen in eurem Zeitraum. Den Filter „Sauna“ bitte auf der Seite selbst anhaken.</p></div>
+      <p class="hint" style="margin:0">Die Links suchen Apartments für ${GROUP} Personen in eurem Zeitraum. Den Filter „Sauna“ bitte auf der Seite selbst anhaken.</p></div>
       <div class="stays"><h4>Eure Unterkünfte (${sl.length === slAll ? slAll : sl.length + " von " + slAll})</h4>
         ${!sl.length && slAll ? `<p class="hint" style="margin:0">Alle ${slAll} Unterkünfte sind durch deine Filter ausgeblendet.</p>` : ""}${sl.length ? sl.map((s, j) => `<div class="stay ${j===0 && s.vsum>0 ? "top":""}">
           <div><a class="t" href="${esc(s.url||"#")}" target="_blank" rel="noopener">${esc(s.title)} ↗</a>
             <div class="tags">${s.sauna ? '<span class="acc walk">Sauna</span>' : '<span class="acc car">ohne Sauna</span>'}<span class="acc ${s.access||"bus"}">${ACC[s.access]||""}${s.dist ? " · Lift " + fmtM(s.dist) : ""}</span>${typeof s.bus === "number" ? `<span class="acc bus">Skibus ${fmtM(s.bus)}</span>` : ""}${s.parking ? `<span class="acc park">P: ${esc(s.parking)}</span>` : ""}${s.note ? `<span>${esc(s.note)}</span>` : ""}</div></div>
-          <div class="pp">${s.price ? Math.round(s.price).toLocaleString("de-DE") + " €" : "–"}<small>${s.price ? `gesamt für 4 · <b>${Math.round(s.price/4).toLocaleString("de-DE")} € pro Person</b> · ${Math.round(s.pp)} € pro Person/Nacht` : "Preis fehlt"}</small></div>
+          <div class="pp">${s.price ? Math.round(s.price).toLocaleString("de-DE") + " €" : "–"}<small>${s.price ? `gesamt für ${GROUP} · <b>${Math.round(s.price/GROUP).toLocaleString("de-DE")} € pro Person</b> · ${Math.round(s.pp)} € pro Person/Nacht` : "Preis fehlt"}</small></div>
           <div class="row2"><span class="who">von ${esc(s.by||"?")}${Object.keys(s.votes||{}).length ? " · " + Object.entries(s.votes).map(([n,v]) => n + (v>0?" 👍":" 👎")).join(", ") : ""}</span>
             <span style="display:flex;gap:6px;align-items:center"><span class="svote"><button type="button" data-svote="1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===1}" aria-label="Gefällt mir">👍</button><button type="button" class="no" data-svote="-1" data-area="${r.id}" data-key="${s.key}" aria-pressed="${(s.votes||{})[ui.me]===-1}" aria-label="Gefällt mir nicht">👎</button></span>
             ${s.by === ui.me ? `<button class="btn" type="button" data-sdel="${s.key}" data-area="${r.id}" style="padding:5px 9px">Löschen</button>` : ""}</span></div>
@@ -1731,7 +1732,7 @@ const MTN = (fill2) => `<svg viewBox="0 0 420 150" preserveAspectRatio="none" ar
 const INTRO = [
   {art: () => MTN(`<text x="210" y="38" text-anchor="middle" style="fill:var(--ink);font:700 22px var(--display)">März 2027</text>`),
    body: () => `<div class="eyebrow">Willkommen</div><h2 id="introTitle">Wohin geht die Skiwoche?</h2>
-     <p>Hier findet ihr zu viert das passende Skigebiet: 38 Gebiete in den Alpen, alle mit mindestens 100 Pistenkilometern, mit Schnee im März, Skipass-Preisen und Fahrzeiten ab Bad Soden und Feldkirch.</p>
+     <p>Hier findet ihr gemeinsam das passende Skigebiet: 38 Gebiete in den Alpen, alle mit mindestens 100 Pistenkilometern, mit Schnee im März, Skipass-Preisen und Fahrzeiten ab Bad Soden und Feldkirch.</p>
      <p class="hint">Alles, was ihr hier macht, sehen die anderen sofort.</p>`},
   {art: () => MTN(),
    body: () => `<div class="eyebrow">Schritt 1</div><h2 id="introTitle">Wer bist du?</h2>
@@ -1752,7 +1753,7 @@ const INTRO = [
        <li><span class="k">⚑</span><span>„Schon dort gewesen“ streicht ein Gebiet für alle</span></li>
      </ul>
      <p class="hint">Statt zu wischen gehen auch die runden Knöpfe unter der Karte.</p>`},
-  {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${["Joni","Achim","Adrian","Olaf"].map((n,i)=>`<text x="${120+i*65}" y="34" text-anchor="middle" style="fill:var(--muted);font:600 13px var(--body)">${n}</text>${[0,1].map(j=>`<text x="${120+i*65}" y="${70+j*34}" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">${j===0?"♥♥":"♥"}</text>`).join("")}`).join("")}<rect x="70" y="50" width="300" height="30" rx="6" style="fill:var(--good);opacity:.18"/><text x="40" y="70" style="fill:var(--good);font:700 13px var(--display)">MATCH</text></svg>`,
+  {art: () => `<svg viewBox="0 0 420 150" aria-hidden="true">${PEOPLE.map(p=>p.n).map((n,i)=>`<text x="${100+i*58}" y="34" text-anchor="middle" style="fill:var(--muted);font:600 13px var(--body)">${n}</text>${[0,1].map(j=>`<text x="${100+i*58}" y="${70+j*34}" text-anchor="middle" style="fill:var(--signal);font:700 18px var(--display)">${j===0?"♥♥":"♥"}</text>`).join("")}`).join("")}<rect x="70" y="50" width="320" height="30" rx="6" style="fill:var(--good);opacity:.18"/><text x="40" y="70" style="fill:var(--good);font:700 13px var(--display)">MATCH</text></svg>`,
    body: () => `<div class="eyebrow">Schritt 4</div><h2 id="introTitle">Wo seid ihr euch einig?</h2>
      <p>Unter <b>② Ergebnis</b> mischt ein Regler die Daten (objektiv) mit euren Herzen (subjektiv) zu einer Gesamt-Wertung. Dort findet ihr auch Liste, Karte und Stimmen mit allen Matches. In <b>③ Planen</b> geht es für die Top 5 an die Unterkunft.</p>
      <p class="hint">Die Anleitung findest du jederzeit oben unter „So funktioniert’s“.</p>`},

@@ -16,7 +16,7 @@
           },
           "votes": {
             "$person": {
-              ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && newData.val() >= -1 && newData.val() <= 2"
+              ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf' || $person === 'Yusuke') && newData.isNumber() && newData.val() >= -1 && newData.val() <= 2"
             }
           },
           "$other": {
@@ -58,14 +58,14 @@
               ".validate": "newData.isString() && newData.val().length <= 300"
             },
             "by": {
-              ".validate": "newData.val() === 'Joni' || newData.val() === 'Achim' || newData.val() === 'Adrian' || newData.val() === 'Olaf'"
+              ".validate": "newData.val() === 'Joni' || newData.val() === 'Achim' || newData.val() === 'Adrian' || newData.val() === 'Olaf' || newData.val() === 'Yusuke'"
             },
             "ts": {
               ".validate": "newData.isNumber()"
             },
             "votes": {
               "$person": {
-                ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf') && newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
+                ".validate": "($person === 'Joni' || $person === 'Achim' || $person === 'Adrian' || $person === 'Olaf' || $person === 'Yusuke') && newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
               }
             },
             "bus": {
