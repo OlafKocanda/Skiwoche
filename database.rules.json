@@ -77,6 +77,15 @@
             "fit": {
               ".validate": "newData.val() === 'ja' || newData.val() === 'eng' || newData.val() === 'nein'"
             },
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= 40 && newData.val() <= 55"
+            },
+            "lon": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+            },
+            "addr": {
+              ".validate": "newData.isString() && newData.val().length <= 120"
+            },
             "$other": {
               ".validate": false
             }
