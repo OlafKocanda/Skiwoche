@@ -74,6 +74,9 @@
             "parking": {
               ".validate": "newData.isString() && newData.val().length <= 80"
             },
+            "fit": {
+              ".validate": "newData.val() === 'ja' || newData.val() === 'eng' || newData.val() === 'nein'"
+            },
             "$other": {
               ".validate": false
             }
