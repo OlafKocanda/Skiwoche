@@ -1773,7 +1773,7 @@ document.addEventListener("input", e => {
 });
 
 // ---------- Karte der Unterkünfte (Leaflet + OpenStreetMap) ----------
-const STAY_GEO = {"s_ehart": [47.13826, 10.28005], "s_buchhammer": [47.14405, 10.30258], "s_alpina": [47.14119, 10.29114], "s_bergkristall": [47.14675, 10.32648], "s_habicher": [47.14617, 10.33533], "s_stoecklhof": [47.14672, 10.33776], "s_zangerl": [47.14228, 10.30069], "s_fluers": [47.14523, 10.41242], "s_roman": [47.14936, 10.34624], "s_galeon": [47.15147, 10.3805], "s_feuerstein": [47.14044, 10.28414], "s_thoenihaus": [47.13034, 10.26797], "s_lavita": [47.123, 10.25346]};   // Standorte der bisher eingetragenen Unterkünfte (OpenStreetMap/Nominatim)
+const STAY_GEO = {"s_ehart": [47.13826, 10.28005], "s_buchhammer": [47.14405, 10.30258], "s_alpina": [47.14119, 10.29114], "s_bergkristall": [47.14675, 10.32648], "s_habicher": [47.14617, 10.33533], "s_stoecklhof": [47.14672, 10.33776], "s_zangerl": [47.14228, 10.30069], "s_fluers": [47.14523, 10.41242], "s_roman": [47.14936, 10.34624], "s_galeon": [47.15147, 10.3805], "s_feuerstein": [47.14044, 10.28414], "s_thoenihaus": [47.13034, 10.26797], "s_lavita": [47.123, 10.25346], "s_schellenschmied": [47.15319, 10.3795], "s_muehlrain": [47.13961, 10.28446]};   // Standorte der bisher eingetragenen Unterkünfte (OpenStreetMap/Nominatim)
 const AREA_LIFTS = {arlberg:[["Galzigbahn",47.12816,10.26286],["Nassereinbahn",47.13475,10.27296]]};
 const stayPos = (area, s) => (typeof s.lat === "number" && typeof s.lon === "number") ? [s.lat, s.lon] : (STAY_GEO[s.key] || null);
 const mapState = {};
